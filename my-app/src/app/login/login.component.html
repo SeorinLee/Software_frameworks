@@ -1,8 +1,9 @@
 <div class="container-fluid">
   <div class="row main-content bg-success text-center">
     <div class="col-md-4 text-center company__info">
-      <span class="company__logo"><h2><span class="fa fa-android"></span></h2></span>
-      <h4 class="company_title">Your Company Logo</h4>
+      <span class="company__logo">
+        <h2><img src="images/chatlogo.png" alt="Chat Logo" class="chat-logo"></h2>
+      </span>
     </div>
     <div class="col-md-8 col-xs-12 col-sm-12 login_form">
       <div class="container-fluid">
@@ -12,22 +13,23 @@
         <div class="row">
           <form (submit)="onLogin($event)" class="form-group">
             <div class="row">
-              <input type="text" name="username" id="username" [(ngModel)]="username" class="form__input" placeholder="Username" required>
+              <input type="email" name="email" id="email" [(ngModel)]="username" class="form__input" placeholder="Email" required>
             </div>
             <div class="row">
               <input type="password" name="password" id="password" [(ngModel)]="password" class="form__input" placeholder="Password" required>
             </div>
-            <div class="row">
-              <input type="checkbox" name="remember_me" id="remember_me">
-              <label for="remember_me">Remember Me!</label>
-            </div>
+            <div class="row remember-me">
+              <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" id="rememberMe">
+             <label for="rememberMe">Remember Me!</label>
+
+            </div>            
             <div class="row">
               <input type="submit" value="Submit" class="btn">
             </div>
           </form>
         </div>
         <div class="row">
-          <p>Don't have an account? <a href="#">Register Here</a></p>
+          <p>Don't have an account? <a [routerLink]="['/register']">Register Here</a></p> <!-- routerLink로 회원가입 페이지로 이동 -->
         </div>
       </div>
     </div>

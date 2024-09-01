@@ -1,0 +1,43 @@
+.nav-bar {
+  background-color: #008080;
+  color: white;
+  padding: 20px;
+  width: 250px;
+  height: 100vh;
+  position: fixed;
+}
+
+.nav-bar .logo {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.nav-bar .logo img {
+  width: 100px;
+  height: auto;
+}
+
+.nav-bar h2 {
+  margin: 0;
+  padding: 0;
+  color: white;
+}
+
+.nav-bar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.nav-bar ul li {
+  margin: 20px 0;
+}
+
+.nav-bar ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.nav-bar ul li a:hover {
+  text-decoration: underline;
+}

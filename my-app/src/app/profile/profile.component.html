@@ -1,0 +1,19 @@
+<div class="profile-container">
+  <h2>Profile</h2>
+  <form (submit)="onSaveProfile()">
+    <label for="username">Username:</label>
+    <input type="text" id="username" [(ngModel)]="user.username" name="username" required>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" [(ngModel)]="user.email" name="email" required>
+
+    <label for="firstName">First Name:</label>
+    <input type="text" id="firstName" [(ngModel)]="user.firstName" name="firstName" required>
+
+    <label for="lastName">Last Name:</label>
+    <input type="text" id="lastName" [(ngModel)]="user.lastName" name="lastName" required>
+
+    <button type="submit" class="btn-save">Save Changes</button>
+  </form>
+  <button class="btn-delete" (click)="onDeleteAccount()">Delete Account</button>
+</div>

@@ -1,0 +1,25 @@
+  <!-- Back 버튼 추가 -->
+  <button class="back-btn" (click)="goBack()">
+    <i class="fa-solid fa-arrow-left"></i> Back
+  </button>
+  
+<div class="main-content">
+
+  <div class="register_form">
+      <form (submit)="onRegister()" class="form-group">
+          <input type="text" name="username" [(ngModel)]="username" placeholder="Username" class="form__input" required>
+          <input type="text" name="firstName" [(ngModel)]="firstName" placeholder="First Name" class="form__input" required>
+          <input type="text" name="lastName" [(ngModel)]="lastName" placeholder="Last Name" class="form__input" required>
+          <input type="text" name="id" [(ngModel)]="id" placeholder="ID" class="form__input" required>
+          <input type="email" name="email" [(ngModel)]="email" placeholder="Email" class="form__input" required>
+          <input type="date" name="dob" [(ngModel)]="dob" placeholder="Date of Birth" class="form__input" required>
+          <input type="password" name="password" [(ngModel)]="password" placeholder="Password" class="form__input" required>
+          <button type="submit" class="btn">Register</button>
+
+          <!-- 오류 메시지 표시 -->
+          <div *ngIf="errorMessage" class="error-message">
+              {{ errorMessage }}
+          </div>
+      </form>
+  </div>
+</div>

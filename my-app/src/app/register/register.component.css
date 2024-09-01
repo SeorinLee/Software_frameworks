@@ -1,0 +1,73 @@
+.main-content {
+  width: 50%;
+  border-radius: 20px;
+  box-shadow: 0 5px 5px rgba(0,0,0,.4);
+  margin: 5em auto;
+  position: relative; /* Back 버튼을 절대 위치로 배치하기 위해 추가 */
+}
+
+.register_form {
+  background-color: #fff;
+  border-radius: 20px;
+  padding: 2em;
+}
+
+.back-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: transparent;
+  border: none;
+  color: #008080;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+.back-btn i {
+  margin-right: 8px; /* 아이콘과 텍스트 사이의 간격 */
+}
+
+.back-btn:hover {
+  color: #004d4d;
+}
+
+/* 기존 스타일 유지 */
+.form__input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #aaa;
+  padding: 1em .5em .5em;
+  padding-left: 2em;
+  outline: none;
+  margin: 1.5em auto;
+  transition: all .5s ease;
+}
+
+.form__input:focus {
+  border-bottom-color: #008080;
+  box-shadow: 0 0 5px rgba(0,80,80,.4); 
+  border-radius: 4px;
+}
+
+.btn {
+  transition: all .5s ease;
+  width: 70%;
+  border-radius: 30px;
+  color: #008080;
+  font-weight: 600;
+  background-color: #fff;
+  border: 1px solid #008080;
+  margin-top: 1.5em;
+  margin-bottom: 1em;
+  margin-left: 100px;
+}
+
+.btn:hover, .btn:focus {
+  background-color: #008080;
+  color: #fff;
+}
+
+.error-message {
+  color: red;
+  margin-top: 1em;
+}
