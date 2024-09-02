@@ -15,7 +15,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class RegisterComponent {
   username: string = '';
-  id: string = '';
   firstName: string = '';
   lastName: string = '';
   dob: string = '';
@@ -46,7 +45,6 @@ export class RegisterComponent {
 
     const newUser = {
       username: this.username,
-      id: this.id,
       firstName: this.firstName,
       lastName: this.lastName,
       dob: this.dob,

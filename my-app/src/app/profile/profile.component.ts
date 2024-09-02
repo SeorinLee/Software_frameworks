@@ -3,43 +3,47 @@ import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http'; // HttpClient 및 HttpClientModule 추가
+import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [FormsModule, HttpClientModule], // HttpClientModule을 imports에 추가
+  imports: [FormsModule, HttpClientModule],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css'],
 })
 export class ProfileComponent {
-  user: any = { username: '', email: '', firstName: '', lastName: '' };
+  user: any = { id: '', username: '', email: '', firstName: '', lastName: '' };
 
-  constructor(private http: HttpClient, private router: Router, @Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
     if (isPlatformBrowser(this.platformId)) {
-      // 브라우저 환경에서만 sessionStorage 사용
       const storedUser = sessionStorage.getItem('user');
-      console.log('ProfileComponent loaded with user:', storedUser);
       if (!storedUser) {
         this.router.navigate(['/login']);
       } else {
         this.user = JSON.parse(storedUser);
+        console.log(`Loaded user with ID: ${this.user.id}`);
       }
     }
   }
 
   onSaveProfile() {
     if (isPlatformBrowser(this.platformId)) {
-      // 클라이언트의 세션 스토리지에 저장
-      sessionStorage.setItem('user', JSON.stringify(this.user));
+      const updatedUser = { ...this.user };
 
-      // 서버에 업데이트된 사용자 정보를 전송
-      this.http.put(`http://localhost:4002/api/users/${this.user.id}`, this.user).subscribe({
+      // 파일 업로드 제거, 단순 데이터 전송
+      this.http.put(`http://localhost:4002/api/users/${this.user.id}`, updatedUser).subscribe({
         next: () => {
           alert('Profile updated successfully!');
+          sessionStorage.setItem('user', JSON.stringify(updatedUser));
         },
-        error: () => {
-          alert('Failed to update profile.');
+        error: (error: HttpErrorResponse) => {
+          console.error('Failed to update profile:', error);
+          this.handleError(error);
         }
       });
     }
@@ -54,11 +58,34 @@ export class ProfileComponent {
             sessionStorage.clear();
             this.router.navigate(['/login']);
           },
-          error: () => {
-            alert('Failed to delete account.');
+          error: (error: HttpErrorResponse) => {
+            console.error('Failed to delete account:', error);
+            this.handleError(error);
           }
         });
       }
     }
+  }
+
+  onBack() {
+    const userRole = this.user.username.startsWith('super')
+      ? 'super-admin'
+      : this.user.username.startsWith('group')
+      ? 'group-admin'
+      : 'user-dashboard';
+
+    this.router.navigate([`/${userRole}`]);
+  }
+
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'An unknown error occurred!';
+    if (error.error instanceof ErrorEvent) {
+      // Client-side or network error
+      errorMessage = `Client-side error: ${error.error.message}`;
+    } else {
+      // Server-side error
+      errorMessage = `Server-side error: ${error.status} ${error.message}`;
+    }
+    alert(errorMessage);
   }
 }

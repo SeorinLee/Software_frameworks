@@ -55,3 +55,22 @@
 .btn-delete:hover {
   background-color: darkred;
 }
+
+.back-btn i {
+  margin-right: 8px; /* 아이콘과 텍스트 사이의 간격 */
+}
+
+.back-btn:hover {
+  color: #004d4d;
+}
+
+.back-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: transparent;
+  border: none;
+  color: #008080;
+  font-size: 1.2em;
+  cursor: pointer;
+}

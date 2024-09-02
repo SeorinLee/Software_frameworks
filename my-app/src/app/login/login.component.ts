@@ -26,13 +26,14 @@ export class LoginComponent {
 
     this.authService.login(this.username, this.password).subscribe({
       next: (response: any) => {
+        console.log('Logged in user:', response); // 디버깅을 위해 로그인된 사용자 정보 출력
         if (this.rememberMe) {
           localStorage.setItem('user', JSON.stringify(response));  // 로컬 스토리지에 저장
         } else {
           sessionStorage.setItem('user', JSON.stringify(response)); // 세션 스토리지에 저장
         }
 
-        console.log('Logged in user:', sessionStorage.getItem('user'));
+         console.log('Logged in user:', sessionStorage.getItem('user'));
     
         // 역할에 따라 적절한 페이지로 리디렉션
         if (response.username.startsWith('super')) {

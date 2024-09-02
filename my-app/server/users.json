@@ -1,0 +1,30 @@
+[
+  {
+    "id": "2",
+    "username": "super77",
+    "password": "7777",
+    "email": "",
+    "roles": [
+      "Super Admin"
+    ],
+    "groups": [
+      ""
+    ],
+    "dob": ""
+  },
+  {
+    "id": "3",
+    "username": "group55",
+    "password": "5555",
+    "email": "yms9074@gmail.com",
+    "roles": [
+      "Group Admin"
+    ],
+    "groups": [
+      ""
+    ],
+    "dob": "",
+    "firstName": "Seorin",
+    "lastName": "Lee"
+  }
+]
