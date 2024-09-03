@@ -1,12 +1,23 @@
 <div class="nav-bar">
   <div class="logo">
-    <img src="assets/icon/chatlogo.png" alt="Logo">
+    <img src="images/chatlogo.png" alt="Logo">
     <h2>Dashboard</h2>
   </div>
   <ul class="nav-links">
     <li><a (click)="navigateToProfile()">My Profile</a></li>
+    <li><a [routerLink]="['/notifications']">Notifications</a></li> <!-- 알림 링크 추가 -->
+    
+    <!-- User Management 드롭다운 -->
+    <li *ngIf="isSuperAdmin()" class="dropdown">
+      <a href="#" class="dropbtn">User Management</a>
+      <div class="dropdown-content">
+        <a [routerLink]="['/user-management']">Chat User Management</a>
+        <a [routerLink]="['/group-management']">Group Admin Management</a>
+      </div>
+    </li>
+
     <li><a (click)="logout()">Logout</a></li>
     <li><a (click)="deleteAccount()">Delete Account</a></li>
+    
   </ul>
-  
 </div>

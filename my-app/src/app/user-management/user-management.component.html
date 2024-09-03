@@ -1,0 +1,24 @@
+<div class="user-management-container">
+  <h2>User Management</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Roles</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.roles.join(', ') }}</td>
+        <td>
+          <button (click)="promoteToGroupAdmin(user.id)">Promote to Group Admin</button>
+          <button (click)="removeUser(user.id)">Delete User</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

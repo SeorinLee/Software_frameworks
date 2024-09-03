@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -8,7 +9,7 @@ import { Observable } from 'rxjs';
 export class AuthService {
   private apiUrl = 'http://localhost:4002/api'; // API 엔드포인트 URL 기본 경로
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {}
 
   login(username: string, password: string): Observable<any> {
     const loginData = { username, password };
@@ -20,8 +21,8 @@ export class AuthService {
   }
 
   getProfile(): Observable<any> {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+    const user = this.getStoredUser();
+    if (user && user.id) {
       return this.http.get<any>(`${this.apiUrl}/users/${user.id}`);
     }
     return new Observable<any>(); // 서버 환경에서는 빈 Observable 반환
@@ -36,21 +37,26 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return typeof window !== 'undefined' && !!window.sessionStorage.getItem('user');
+    return !!this.getStoredUser();  // localStorage와 sessionStorage 모두 확인
   }
 
   getUserRole(): string | null {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const user = sessionStorage.getItem('user');
-      return user ? JSON.parse(user).username : null;
-      
-    }
-    return null;
+    const user = this.getStoredUser();
+    return user ? user.username : null;
   }
 
+  getStoredUser(): any | null {
+    if (isPlatformBrowser(this.platformId)) {
+      const user = localStorage.getItem('user') || sessionStorage.getItem('user');
+      return user ? JSON.parse(user) : null;
+    }
+    return null;
+  }  
+
   logout() {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      sessionStorage.clear();
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('user');
+      sessionStorage.removeItem('user');
     }
   }
 }

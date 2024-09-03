@@ -1,0 +1,13 @@
+<div *ngIf="selectedNotification; else notificationList">
+  <h3>{{ selectedNotification.message }}</h3>
+  <button (click)="onAccept()">Accept</button>
+  <button (click)="onClose()">Close</button>
+</div>
+
+<ng-template #notificationList>
+  <ul>
+    <li *ngFor="let notification of notifications" (click)="onNotificationClick(notification)">
+      {{ notification.message }} - <small>{{ notification.timestamp | date:'short' }}</small>
+    </li>
+  </ul>
+</ng-template>

@@ -3,8 +3,25 @@
     "id": "2",
     "username": "super77",
     "password": "7777",
+    "email": "yms9074@gmail.com",
+    "roles": [
+      "Super Admin"
+    ],
+    "groups": [
+      ""
+    ],
+    "dob": "",
+    "firstName": "Seorin",
+    "lastName": "Lee"
+  },
+  {
+    "id": "3",
+    "username": "super99",
+    "password": "9999",
     "email": "",
     "roles": [
+      "User",
+      "Group Admin",
       "Super Admin"
     ],
     "groups": [
@@ -14,17 +31,43 @@
   },
   {
     "id": "3",
-    "username": "group55",
-    "password": "5555",
-    "email": "yms9074@gmail.com",
+    "username": "group99",
+    "password": "9999",
+    "email": "",
     "roles": [
       "Group Admin"
     ],
     "groups": [
       ""
     ],
-    "dob": "",
-    "firstName": "Seorin",
-    "lastName": "Lee"
+    "dob": ""
+  },
+  {
+    "id": "4",
+    "username": "user11",
+    "password": "1111",
+    "email": "",
+    "roles": [
+      "User",
+      "Group Admin"
+    ],
+    "groups": [
+      ""
+    ],
+    "dob": ""
+  },
+  {
+    "id": "5",
+    "username": "user22",
+    "password": "2222",
+    "email": "",
+    "roles": [
+      "User",
+      "Group Admin"
+    ],
+    "groups": [
+      ""
+    ],
+    "dob": ""
   }
 ]

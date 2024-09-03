@@ -4,19 +4,19 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../auth.service';
 import { HttpClientModule } from '@angular/common/http';
-import { RouterModule } from '@angular/router'; // RouterModule 추가
+import { RouterModule } from '@angular/router';
 
 @Component({
   standalone: true,
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  imports: [CommonModule, FormsModule, HttpClientModule, RouterModule] // RouterModule을 imports에 추가
+  imports: [CommonModule, FormsModule, HttpClientModule, RouterModule]
 })
 export class LoginComponent {
   username: string = '';
   password: string = '';
-  rememberMe: boolean = false;  // Remember Me 필드 추가
+  rememberMe: boolean = false;
   errorMessage: string = '';
 
   constructor(private router: Router, private authService: AuthService) {}
@@ -26,16 +26,12 @@ export class LoginComponent {
 
     this.authService.login(this.username, this.password).subscribe({
       next: (response: any) => {
-        console.log('Logged in user:', response); // 디버깅을 위해 로그인된 사용자 정보 출력
         if (this.rememberMe) {
-          localStorage.setItem('user', JSON.stringify(response));  // 로컬 스토리지에 저장
+          localStorage.setItem('user', JSON.stringify(response));
         } else {
-          sessionStorage.setItem('user', JSON.stringify(response)); // 세션 스토리지에 저장
+          sessionStorage.setItem('user', JSON.stringify(response));
         }
 
-         console.log('Logged in user:', sessionStorage.getItem('user'));
-    
-        // 역할에 따라 적절한 페이지로 리디렉션
         if (response.username.startsWith('super')) {
           this.router.navigate(['/super-admin']);
         } else if (response.username.startsWith('group')) {
@@ -51,6 +47,5 @@ export class LoginComponent {
         alert('Invalid username or password');
       }
     });
-    
   }
 }
