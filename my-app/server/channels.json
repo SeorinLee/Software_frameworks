@@ -40,12 +40,5 @@
     "description": "4",
     "groupId": "3",
     "creator": "super77"
-  },
-  {
-    "id": "test6",
-    "name": "6",
-    "description": "6",
-    "groupId": "test5",
-    "creator": "g123"
   }
 ]

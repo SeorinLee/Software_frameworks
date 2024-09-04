@@ -11,17 +11,9 @@
         <li *ngIf="!isSuperAdmin() && !isGroupAdmin()"><a [routerLink]="['/user-dashboard']">Dashboard</a></li>
 
     <li><a [routerLink]="['/notifications']">Notifications</a></li> <!-- 알림 링크 추가 -->
-
+    <li *ngIf="isSuperAdmin()"><a [routerLink]="['/user-management']">Chat User Management</a></li>
     
 
-    <!-- User Management 드롭다운 -->
-    <li *ngIf="isSuperAdmin()" class="dropdown">
-      <a class="dropbtn">User Management</a>
-      <div class="dropdown-content">
-        <a [routerLink]="['/user-management']">Chat User Management</a>
-        <a [routerLink]="['/group-management']">Group Admin Management</a>
-      </div>
-    </li>
 
     <!-- Chatting Management 드롭다운 -->
     <li *ngIf="isSuperAdmin() || isGroupAdmin()" class="dropdown">

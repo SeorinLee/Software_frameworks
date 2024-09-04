@@ -72,7 +72,9 @@ export class ChannelManagementComponent {
   deleteChannel(channelId: string) {
     if (confirm('Are you sure you want to delete this channel?')) {
       const user = this.authService.getStoredUser(); // 사용자 정보 가져오기
-      this.http.delete(`http://localhost:4002/api/groups/${this.selectedGroupId}/channels/${channelId}`, { body: { user } }).subscribe(() => {
+      const headers = { 'user': JSON.stringify(user) }; // 사용자 정보를 헤더로 전달
+  
+      this.http.delete(`http://localhost:4002/api/groups/${this.selectedGroupId}/channels/${channelId}`, { headers }).subscribe(() => {
         alert('Channel deleted successfully');
         this.loadChannels(this.selectedGroupId);
       }, error => {
@@ -80,4 +82,5 @@ export class ChannelManagementComponent {
       });
     }
   }
+  
 }

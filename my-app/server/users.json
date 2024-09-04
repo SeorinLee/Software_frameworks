@@ -1,83 +1,5 @@
 [
   {
-    "id": "5",
-    "username": "super65",
-    "password": "6565",
-    "email": "",
-    "roles": [
-      "Super Admin"
-    ],
-    "groups": [
-      ""
-    ],
-    "dob": ""
-  },
-  {
-    "id": "8",
-    "username": "super0",
-    "password": "0",
-    "email": "",
-    "roles": [
-      "Super Admin"
-    ],
-    "groups": [
-      ""
-    ],
-    "dob": ""
-  },
-  {
-    "id": "11",
-    "username": "super54",
-    "password": "5",
-    "email": "",
-    "roles": [
-      "Super Admin"
-    ],
-    "groups": [
-      ""
-    ],
-    "dob": ""
-  },
-  {
-    "id": "12",
-    "username": " 4",
-    "password": "4",
-    "email": "",
-    "roles": [
-      null
-    ],
-    "groups": [
-      ""
-    ],
-    "dob": ""
-  },
-  {
-    "id": "13",
-    "username": "10",
-    "password": "1",
-    "email": "",
-    "roles": [
-      null
-    ],
-    "groups": [
-      ""
-    ],
-    "dob": ""
-  },
-  {
-    "id": "17",
-    "username": "s123",
-    "password": "2222",
-    "firstName": "Seorin",
-    "lastName": "Lee",
-    "email": "2@test.com",
-    "roles": [
-      "Super Admin"
-    ],
-    "groups": [],
-    "dob": "2024-09-18"
-  },
-  {
     "id": "18",
     "username": "u123",
     "password": "1111",
@@ -89,5 +11,18 @@
     ],
     "groups": [],
     "dob": "2024-09-03"
+  },
+  {
+    "id": "2",
+    "username": "s1015",
+    "password": "9074",
+    "firstName": "Rin",
+    "lastName": "Lee",
+    "email": "0@test.com",
+    "roles": [
+      "Super Admin"
+    ],
+    "groups": [],
+    "dob": "2022-01-05"
   }
 ]

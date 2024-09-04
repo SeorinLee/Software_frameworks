@@ -300,26 +300,31 @@ app.post('/api/groups/:groupId/channels', (req, res) => {
   res.status(201).json(newChannel);
 });
 
-// 채널 삭제
-app.delete('/api/groups/:groupId/channels/:channelId', (req, res) => {
-  const { groupId, channelId } = req.params;
-  const user = JSON.parse(req.headers.user); // 사용자 정보는 헤더에서 받아옴
-  const channelIndex = channels.findIndex(channel => channel.id === channelId && channel.groupId === groupId);
+// 그룹 삭제
+app.delete('/api/groups/:id', (req, res) => {
+  const groupId = req.params.id;
+  
+  // 사용자 정보를 헤더에서 가져옵니다.
+  const user = JSON.parse(req.headers.user); 
+  
+  const groupIndex = groups.findIndex(group => group.id === groupId);
 
-  if (channelIndex === -1) {
-    return res.status(404).json({ error: 'Channel not found' });
+  if (groupIndex === -1) {
+    return res.status(404).json({ error: 'Group not found' });
   }
 
-  const channel = channels[channelIndex];
-  if (user.roles.includes('Group Admin') && channel.creator !== user.username) {
-    return res.status(403).json({ error: 'You do not have permission to delete this channel.' });
+  const group = groups[groupIndex];
+  
+  // Group Admin이 자신이 생성한 그룹만 삭제할 수 있고, Super Admin은 모든 그룹을 삭제할 수 있음
+  if (user.roles.includes('Super Admin') || (user.roles.includes('Group Admin') && group.creator === user.username)) {
+    groups.splice(groupIndex, 1);  // 그룹 삭제
+    saveFile(groupsFilePath, groups);  // 삭제 후 파일에 저장
+    res.status(200).json({ message: 'Group deleted successfully' });
+  } else {
+    res.status(403).json({ error: 'You do not have permission to delete this group.' });
   }
-
-  channels.splice(channelIndex, 1);
-  saveFile(channelsFilePath, channels);
-
-  res.status(200).json({ message: 'Channel deleted successfully' });
 });
+
 
 // 그룹 내 채널 조회
 app.get('/api/groups/:groupId/channels', (req, res) => {
@@ -332,8 +337,46 @@ app.get('/api/groups/:groupId/channels', (req, res) => {
   res.json(groupChannels);
 });
 
+// 채널 삭제
+app.delete('/api/groups/:groupId/channels/:channelId', (req, res) => {
+  const { groupId, channelId } = req.params;
+
+  // 사용자 정보를 헤더에서 가져옴. 헤더가 비어 있으면 오류 반환.
+  const userHeader = req.headers.user;
+  
+  if (!userHeader) {
+    return res.status(400).json({ error: 'User information missing in headers.' });
+  }
+
+  let user;
+  try {
+    user = JSON.parse(userHeader);  // JSON 문자열을 객체로 파싱
+  } catch (err) {
+    return res.status(400).json({ error: 'Invalid user information in headers.' });
+  }
+
+  const channelIndex = channels.findIndex(channel => channel.id === channelId && channel.groupId === groupId);
+
+  if (channelIndex === -1) {
+    return res.status(404).json({ error: 'Channel not found' });
+  }
+
+  const channel = channels[channelIndex];
+
+  // Group Admin이 자신이 생성한 채널만 삭제할 수 있음, Super Admin은 모든 채널 삭제 가능
+  if (user.roles.includes('Super Admin') || (user.roles.includes('Group Admin') && channel.creator === user.username)) {
+    channels.splice(channelIndex, 1);  // 채널 삭제
+    saveFile(channelsFilePath, channels);  // 삭제 후 파일에 저장
+    res.status(200).json({ message: 'Channel deleted successfully' });
+  } else {
+    res.status(403).json({ error: 'You do not have permission to delete this channel.' });
+  }
+});
+
+
+
 // 사용자 삭제 (Super Admin)
-app.delete('/api/super-admin/delete/:id', (req, res) => {
+('/api/super-admin/delete/:id', (req, res) => {
   const userId = req.params.id;  // 경로에서 user ID를 추출
   const userIndex = users.findIndex(u => u.id === userId);  // 사용자 찾기
 

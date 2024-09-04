@@ -62,7 +62,9 @@ export class ChatGroupComponent {
   deleteGroup(groupId: string) {
     if (confirm('Are you sure you want to delete this group?')) {
       const user = this.authService.getStoredUser(); // 사용자 정보 가져오기
-      this.http.delete(`http://localhost:4002/api/groups/${groupId}`, { body: { user } }).subscribe(() => {
+      const headers = { 'user': JSON.stringify(user) }; // 사용자 정보를 헤더로 전달
+  
+      this.http.delete(`http://localhost:4002/api/groups/${groupId}`, { headers }).subscribe(() => {
         alert('Group deleted successfully');
         this.loadGroups();
       }, error => {
@@ -70,6 +72,7 @@ export class ChatGroupComponent {
       });
     }
   }
+  
 
   resetGroupForm() {
     this.newGroupId = '';
