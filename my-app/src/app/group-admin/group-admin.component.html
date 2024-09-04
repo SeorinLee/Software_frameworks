@@ -1,7 +1,27 @@
+<!-- Group Admin Dashboard -->
 <div class="dashboard-container">
   <app-nav-bar></app-nav-bar>
   <div class="dashboard-content">
     <h1>{{ title }}</h1>
-    <!-- 여기에 Group Admin 대시보드 콘텐츠 추가 -->
+    
+    <!-- 검색 입력 필드 추가 -->
+    <div class="search-container">
+      <input type="text" placeholder="Search for groups..." [(ngModel)]="searchTerm" (input)="filterGroups()" class="search-input" />
+    </div>
+
+    <!-- Group Admin이 생성한 그룹을 표시 -->
+    <div *ngIf="filteredGroups.length > 0">
+      <h3>Your Groups</h3>
+      <div class="groups-container">
+        <div *ngFor="let group of filteredGroups" class="group-container" (click)="navigateToGroup(group.id)">
+          <strong>{{ group.name }}</strong>
+          <p>{{ group.description }}</p>
+          <p><strong>Created by:</strong> {{ group.creatorName }}</p>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="filteredGroups.length === 0">
+      <p>No groups found. Create a new group to get started.</p>
+    </div>
   </div>
 </div>

@@ -1,0 +1,64 @@
+/* 전체 네비게이션 바 스타일 */
+.group-navigation {
+  background-color: #004d4d;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: flex-start;
+  margin-left: 17%;
+}
+
+.group-navigation ul {
+  list-style-type: none;
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.group-navigation ul li {
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.group-navigation ul li:hover {
+  text-decoration: underline;
+}
+
+/* 그룹 디테일 컨테이너 */
+.group-detail-container {
+  margin-left: 270px;
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+}
+
+.group-detail-container h1, .group-detail-container h2 {
+  color: #333;
+}
+
+.group-detail-container p {
+  font-size: 16px;
+  color: #555;
+}
+
+/* 리스트 스타일 */
+.group-detail-container ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.group-detail-container li {
+  background-color: white;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.group-detail-container li:hover {
+  background-color: #f1f1f1;
+  cursor: pointer;
+}

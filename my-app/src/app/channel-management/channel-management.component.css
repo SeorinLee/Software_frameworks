@@ -1,0 +1,135 @@
+.channel-management {
+  width: calc(100% - 270px); /* 네비게이션 바 너비(250px) + 약간의 여유 공간(20px) */
+  margin-left: 270px; /* 네비게이션 바 너비만큼 왼쪽 여백 추가 */
+  padding-top: 20px; /* 페이지 상단 여백 */
+  position: relative;
+}
+
+.groups-list {
+  margin-top: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, .4);
+  padding: 20px;
+}
+
+.groups-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.groups-list li {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.groups-list li:hover {
+  background-color: #f0f0f0;
+}
+
+.channels-list {
+  margin-top: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, .4);
+  padding: 20px;
+}
+
+.channels-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.channels-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.channels-list li {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.channels-list li strong {
+  display: block;
+  font-size: 1.2em;
+  color: #008080;
+}
+
+.btn-delete {
+  background-color: #ff4c4c;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.btn-delete:hover {
+  background-color: #ff1c1c;
+}
+
+.btn-create {
+  background-color: #008080;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.btn-create:hover {
+  background-color: #005555;
+}
+
+.create-channel-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+  width: 40%;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.create-channel-content {
+  text-align: center;
+}
+
+.form__input {
+  width: 90%;
+  margin-bottom: 15px;
+}
+
+.btn-close {
+  background-color: #ccc;
+  color: #333;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.btn-close:hover {
+  background-color: #aaa;
+}
+
+@media screen and (max-width: 768px) {
+  .channel-management {
+    width: 100%;
+    margin-left: 0;
+    padding: 10px;
+  }
+
+  .create-channel-modal {
+    width: 90%;
+  }
+}

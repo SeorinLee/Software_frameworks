@@ -1,0 +1,34 @@
+<app-nav-bar></app-nav-bar>
+
+<!-- 상단 네비게이션 바 추가 -->
+<div class="group-navigation">
+  <ul>
+    <li (click)="showMembersTab()">Group Members</li>
+    <li (click)="showChannelsTab()">Group Channels</li>
+  </ul>
+</div>
+
+<!-- 그룹 멤버 리스트 -->
+<div *ngIf="showMembers" class="group-detail-container">
+  <h2>Group Members</h2>
+  <ul>
+    <li *ngFor="let member of groupMembers">
+      <strong>{{ member.firstName }} {{ member.lastName }}</strong> - {{ member.email }}
+    </li>
+  </ul>
+</div>
+
+<!-- 그룹 채널 리스트 -->
+<div *ngIf="showChannels" class="group-detail-container">
+  <h2>Group Channels</h2>
+  <ul>
+    <li *ngFor="let channel of groupChannels">{{ channel.name }}</li>
+  </ul>
+</div>
+
+<!-- 그룹 기본 정보 표시 -->
+<div class="group-detail-container">
+  <h1>{{ group?.name }}</h1>
+  <p><strong>Description:</strong> {{ group?.description }}</p>
+  <p><strong>Created by:</strong> {{ group?.creatorName }}</p>
+</div>

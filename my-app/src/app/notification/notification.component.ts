@@ -2,13 +2,14 @@ import { Component } from '@angular/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { NavBarComponent } from '../nav-bar/nav-bar.component';
 
 @Component({
   selector: 'app-notification',
   standalone: true,
   templateUrl: './notification.component.html',
   styleUrls: ['./notification.component.css'],
-  imports: [CommonModule, HttpClientModule]  // CommonModule과 HttpClientModule을 추가
+  imports: [CommonModule, HttpClientModule, NavBarComponent]  // CommonModule과 HttpClientModule을 추가
 })
 export class NotificationComponent {
   notifications: any[] = [];

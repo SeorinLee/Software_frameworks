@@ -1,0 +1,44 @@
+<app-nav-bar></app-nav-bar>
+<div class="channel-management">
+  <div class="groups-list">
+    <h3>Select a Group to Manage Channels</h3>
+    <ul>
+      <li *ngFor="let group of groups" (click)="loadChannels(group.id)">
+        {{ group.name }}
+      </li>
+    </ul>
+  </div>
+
+  <div class="channels-list" *ngIf="selectedGroupId">
+    <div class="channels-header">
+      <h3>Channels in Selected Group</h3>
+      <button class="btn-create" (click)="showCreateChannelForm = true">Create Channel</button>
+    </div>
+    <ul>
+      <li *ngFor="let channel of channels">
+        <strong>{{ channel.name }}</strong>
+        <p>{{ channel.description }}</p>
+        <button class="btn-delete" (click)="deleteChannel(channel.id)">Delete Channel</button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="create-channel-modal" *ngIf="showCreateChannelForm">
+    <div class="create-channel-content">
+      <h3>Create a New Channel</h3>
+      <form (submit)="createChannel()">
+        <label for="channelId">Channel ID:</label>
+        <input type="text" id="channelId" [(ngModel)]="newChannelId" name="channelId" class="form__input" required>
+        
+        <label for="channelName">Channel Name:</label>
+        <input type="text" id="channelName" [(ngModel)]="newChannelName" name="channelName" class="form__input" required>
+        
+        <label for="channelDescription">Description:</label>
+        <textarea id="channelDescription" [(ngModel)]="newChannelDescription" name="channelDescription" class="form__input" required></textarea>
+        
+        <button type="submit" class="btn">Create Channel</button>
+        <button type="button" class="btn btn-close" (click)="showCreateChannelForm = false">Cancel</button>
+      </form>
+    </div>
+  </div>
+</div>

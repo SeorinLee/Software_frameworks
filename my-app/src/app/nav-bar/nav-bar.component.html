@@ -1,23 +1,38 @@
 <div class="nav-bar">
   <div class="logo">
     <img src="images/chatlogo.png" alt="Logo">
-    <h2>Dashboard</h2>
+    <h2>{{ firstName }} {{ lastName }}</h2> <!-- 사용자 이름 표시 -->
   </div>
   <ul class="nav-links">
     <li><a (click)="navigateToProfile()">My Profile</a></li>
+        <!-- Dashboard 링크 추가 -->
+        <li *ngIf="isSuperAdmin()"><a [routerLink]="['/super-admin']">Dashboard</a></li>
+        <li *ngIf="isGroupAdmin()"><a [routerLink]="['/group-admin']">Dashboard</a></li>
+        <li *ngIf="!isSuperAdmin() && !isGroupAdmin()"><a [routerLink]="['/user-dashboard']">Dashboard</a></li>
+
     <li><a [routerLink]="['/notifications']">Notifications</a></li> <!-- 알림 링크 추가 -->
+
     
+
     <!-- User Management 드롭다운 -->
     <li *ngIf="isSuperAdmin()" class="dropdown">
-      <a href="#" class="dropbtn">User Management</a>
+      <a class="dropbtn">User Management</a>
       <div class="dropdown-content">
         <a [routerLink]="['/user-management']">Chat User Management</a>
         <a [routerLink]="['/group-management']">Group Admin Management</a>
       </div>
     </li>
 
+    <!-- Chatting Management 드롭다운 -->
+    <li *ngIf="isSuperAdmin() || isGroupAdmin()" class="dropdown">
+      <a  class="dropbtn">Chatting Management</a>
+      <div class="dropdown-content">
+        <a [routerLink]="['/chat-groups']">Groups Management</a>
+        <a [routerLink]="['/channel-management']">Channel Management</a>
+      </div>
+    </li>
+
     <li><a (click)="logout()">Logout</a></li>
     <li><a (click)="deleteAccount()">Delete Account</a></li>
-    
   </ul>
 </div>

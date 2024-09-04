@@ -21,7 +21,7 @@ export class LoginComponent {
 
   constructor(private router: Router, private authService: AuthService) {}
 
-  onLogin(event: Event): void { 
+  onLogin(event: Event): void {
     event.preventDefault();
 
     this.authService.login(this.username, this.password).subscribe({
@@ -32,11 +32,16 @@ export class LoginComponent {
           sessionStorage.setItem('user', JSON.stringify(response));
         }
 
-        if (response.username.startsWith('super')) {
+        const role = response.roles?.[0];  // Get the first role
+
+        console.log('Logged in with role:', role);
+
+        // Redirect based on role
+        if (role === 'Super Admin') {
           this.router.navigate(['/super-admin']);
-        } else if (response.username.startsWith('group')) {
+        } else if (role === 'Group Admin') {
           this.router.navigate(['/group-admin']);
-        } else if (response.username.startsWith('user')) {
+        } else if (role === 'User') {
           this.router.navigate(['/user-dashboard']);
         } else {
           this.errorMessage = 'Unauthorized role';

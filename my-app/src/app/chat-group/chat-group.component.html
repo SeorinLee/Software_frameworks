@@ -1,0 +1,36 @@
+<app-nav-bar></app-nav-bar>
+<div class="group-management">
+  <div class="existing-groups">
+    <h3>Existing Groups</h3>
+    <ul>
+      <li *ngFor="let group of groups">
+        <strong>{{ group.name }}</strong> (ID: {{ group.id }})
+        <p><strong>Description:</strong> {{ group.description }}</p>
+        <p><strong>Created by:</strong> {{ group.creatorName }}</p> <!-- 생성자 이름 표시 -->
+        <button class="btn-delete" (click)="deleteGroup(group.id)">Delete Group</button>
+      </li>
+    </ul>
+  </div>
+
+  <button class="btn-create" (click)="showCreateGroupForm = true">Create Group</button>
+
+  <div class="create-group-modal" *ngIf="showCreateGroupForm">
+    <div class="create-group-content">
+      <h3>Create a new group</h3>
+      <form (submit)="createGroup()">
+        <label for="groupId">Group ID:</label>
+        <input type="text" id="groupId" [(ngModel)]="newGroupId" name="groupId" class="form__input" required>
+        
+        <label for="groupName">Group Name:</label>
+        <input type="text" id="groupName" [(ngModel)]="newGroupName" name="groupName" class="form__input" required>
+        
+        <label for="groupDescription">Description:</label>
+        <textarea id="groupDescription" [(ngModel)]="newGroupDescription" name="groupDescription" class="form__input" required></textarea>
+        
+        
+        <button type="submit" class="btn">Create Group</button>
+        <button type="button" class="btn btn-close" (click)="showCreateGroupForm = false">Cancel</button>
+      </form>
+    </div>
+  </div>
+</div>

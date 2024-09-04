@@ -1,0 +1,104 @@
+.group-management {
+  width: calc(100% - 270px); /* 네비게이션 바 너비(250px) + 약간의 여유 공간(20px) */
+  margin-left: 270px; /* 네비게이션 바 너비만큼 왼쪽 여백 추가 */
+  padding-top: 20px; /* 페이지 상단 여백 */
+  position: relative;
+}
+
+.existing-groups {
+  margin-top: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, .4);
+  padding: 20px;
+}
+
+.existing-groups ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.existing-groups li {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.existing-groups li strong {
+  display: block;
+  font-size: 1.2em;
+  color: #008080;
+}
+
+.btn-delete {
+  background-color: #ff4c4c;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.btn-delete:hover {
+  background-color: #ff1c1c;
+}
+
+.btn-create {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #008080;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.btn-create:hover {
+  background-color: #005555;
+}
+
+.create-group-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+  width: 40%;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.create-group-content {
+  text-align: center;
+}
+
+.form__input {
+  width: 90%;
+  margin-bottom: 15px;
+}
+
+.btn-close {
+  background-color: #ccc;
+  color: #333;
+}
+
+.btn-close:hover {
+  background-color: #aaa;
+}
+
+@media screen and (max-width: 768px) {
+  .group-management {
+    width: 100%; /* 모바일 환경에서는 네비게이션 바가 보통 상단으로 이동하므로 전체 너비 사용 */
+    margin-left: 0;
+    padding: 10px;
+  }
+
+  .create-group-modal {
+    width: 90%;
+  }
+}
