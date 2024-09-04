@@ -51,18 +51,36 @@ Can join channels and participate in discussions as permitted by their group adm
 Can view and send messages, share files, and engage in video calls within the channels they have access to.
 
 ## Install CLI and open the server and localhost
-git clone https://github.com/SeorinLee/Software_frameworks.git
+Installation Instructions
+To set up a project on your local system, follow these steps:
 
-sudo npm install -g @angular/cli
+Verify that Node.js is installed on the system.
+Replicate the project repository: gitclone https://github.com/your-repo/s5310537-project.git
+Go to the project directory: cds5310537-project
+Install Angular CLI globally: npm install -g @angular/cli
+Go to the server directory: cd src/server
+Install server dependency: npm install
+Start server: node index.js
+Implementation Guidelines
+To run the Angular Development Server:
 
-cd my-app
+Start the Angular Development Server: ngserve --open
+This command automatically opens http://localhost:4200/ in the default browser.
+Changing the source file automatically reloads the application.
+development server
+Run ng serve for the development server. Go to http://localhost:4200/. The application will automatically reload whenever you change the source file.
 
-sudo npm install
+Code scaffolding
+Run ng generate component component-name to create a new component. You can also use ng generate directive|pipe|service|class|guard|interface|enum|module.
 
-ng serve --open
+Build
+Run ng build to build the project. Build artifacts are stored in the dist/ directory.
 
+Run a unit test
+To run the unit test through Karma, run ng test.
 
+Run end-to-end tests
+To run end-to-end testing, run nge2e. This command requires adding a package that implements end-to-end testing capabilities.
 
-cd server
-
-node index.js
+Additional Help
+For additional help with the Angular CLI, use nghelp or visit the Angular CLI Overview and Command Reference page.
