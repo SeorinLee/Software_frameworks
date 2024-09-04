@@ -14,10 +14,10 @@ import { CommonModule } from '@angular/common'; // Angular CommonModule 추가
 export class GroupDetailComponent implements OnInit {
   groupId: string = '';
   group: any;
-  groupMembers: any[] = [];  // 그룹 멤버 데이터는 배열이어야 함
-  groupChannels: any[] = []; // 그룹 채널 데이터는 배열이어야 함
-  showMembers: boolean = true; // 기본적으로 멤버 보기 활성화
-  showChannels: boolean = false; // 채널 보기는 기본적으로 비활성화
+  groupMembers: any[] = [];  
+  groupChannels: any[] = []; 
+  showMembers: boolean = true; 
+  showChannels: boolean = false; 
 
   constructor(private route: ActivatedRoute, private http: HttpClient) {}
 

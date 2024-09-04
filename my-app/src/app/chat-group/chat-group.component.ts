@@ -17,7 +17,7 @@ export class ChatGroupComponent {
   newGroupName: string = '';
   newGroupId: string = '';
   newGroupDescription: string = '';
-  showCreateGroupForm: boolean = false;  // 모달 창 상태를 관리하는 속성 추가
+  showCreateGroupForm: boolean = false;  
 
   constructor(private http: HttpClient, private authService: AuthService) {  // AuthService DI 추가
     this.loadGroups();
