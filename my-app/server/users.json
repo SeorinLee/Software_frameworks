@@ -11,22 +11,7 @@
       ""
     ],
     "dob": "",
-    "firstName": "Seorin",
-    "lastName": "Lee"
-  },
-  {
-    "id": "7",
-    "username": "super19",
-    "password": "1919",
-    "email": "yms9074@gmail.com",
-    "roles": [
-      "Super Admin"
-    ],
-    "groups": [
-      ""
-    ],
-    "dob": "",
-    "firstName": "Seorin",
+    "firstName": "Rin",
     "lastName": "Lee"
   },
   {
@@ -56,9 +41,9 @@
     "dob": ""
   },
   {
-    "id": "12",
-    "username": "user55",
-    "password": "5555",
+    "id": "7",
+    "username": "user444",
+    "password": "4444",
     "email": "",
     "roles": [
       "User"
@@ -69,12 +54,25 @@
     "dob": ""
   },
   {
-    "id": "13",
-    "username": "user7",
-    "password": "7777",
+    "id": "5",
+    "username": "group65",
+    "password": "6565",
     "email": "",
     "roles": [
-      "User"
+      "Group Admin"
+    ],
+    "groups": [
+      ""
+    ],
+    "dob": ""
+  },
+  {
+    "id": "6",
+    "username": "group0",
+    "password": "0000",
+    "email": "",
+    "roles": [
+      "Group Admin"
     ],
     "groups": [
       ""

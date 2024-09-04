@@ -65,20 +65,30 @@ app.get('/api/notifications/:id', (req, res) => {
   }
 });
 
-// 사용자 로그인
 app.post('/api/auth', (req, res) => {
   const { username, password } = req.body;
   
-  // 정확히 username과 password가 일치하는 사용자 찾기
+  // username과 password가 일치하는 사용자 찾기
   const user = users.find(u => u.username === username && u.password === password);
-  
+
   if (user) {
-    // 로그인 성공 시 사용자 정보를 반환 (roles 포함)
+    // 유저네임 접두어에 따라 역할 업데이트
+    if (username.startsWith('super')) {
+      user.roles = ['Super Admin'];
+    } else if (username.startsWith('group')) {
+      user.roles = ['Group Admin'];
+    } else if (username.startsWith('user')) {
+      user.roles = ['User'];
+    }
+
+    // 로그인 성공 시 업데이트된 사용자 정보 반환 (roles 포함)
+    saveFile(usersFilePath, users);  // 변경된 역할 저장
     res.json(user);
   } else {
     res.status(401).json({ error: 'Invalid username or password' });
   }
 });
+
 
 
 // 사용자 회원가입
@@ -151,15 +161,36 @@ app.post('/api/accept-promotion/:id', (req, res) => {
   }
 
   let user = users[userIndex];
-  const rolePrefix = user.roles.includes('Super Admin') ? 'super' : 'group';
-  user.username = `${rolePrefix}${user.username.replace(/^(super|group)/, '')}`;
+  
+  // 새로운 역할에 맞는 접두어 설정
+  let rolePrefix = '';
+  let newRole = '';
+  
+  if (user.roles.includes('Super Admin')) {
+    rolePrefix = 'super';
+    newRole = 'Super Admin';
+  } else if (user.roles.includes('Group Admin')) {
+    rolePrefix = 'group';
+    newRole = 'Group Admin';
+  } else if (user.roles.includes('User')) {
+    rolePrefix = 'group';  // Group Admin으로 승격
+    newRole = 'Group Admin';
+  }
+
+  // 기존 접두어(super, group, user) 제거 후 새로운 접두어 추가
+  user.username = `${rolePrefix}${user.username.replace(/^(super|group|user)/, '')}`;
+
+  // 역할 업데이트
+  user.roles = [newRole];  // 역할을 새롭게 설정
 
   saveFile(usersFilePath, users);
   notifications[userId] = [];  // 알림 삭제
   saveFile(notificationsFilePath, notifications);
 
-  res.json({ success: true, newUsername: user.username });
+  res.json({ success: true, newUsername: user.username, newRole: user.roles[0] });
 });
+
+
 
 // 그룹 생성
 app.post('/api/groups', (req, res) => {
