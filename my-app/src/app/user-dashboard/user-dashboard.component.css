@@ -6,3 +6,11 @@ h1 {
 p {
   font-size: 18px;
 }
+/* 기존의 대시보드 및 nav-bar 스타일 */
+.dashboard-container {
+  display: flex;
+}
+.dashboard-content {
+  margin-left: 250px; /* NavBar와의 간격 */
+  padding: 20px;
+}

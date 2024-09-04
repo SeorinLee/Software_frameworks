@@ -2,7 +2,12 @@
   null,
   null,
   null,
-  [],
+  [
+    {
+      "message": "You have been invited to join group 34.",
+      "timestamp": "2024-09-04T18:33:06.388Z"
+    }
+  ],
   null,
   [
     {
@@ -50,6 +55,34 @@
     {
       "message": "Your role has been changed to Group Admin. Please accept the promotion in your notifications.",
       "timestamp": "2024-09-04T14:19:10.772Z"
+    },
+    {
+      "message": "You have been invited to join group 34.",
+      "timestamp": "2024-09-04T18:47:52.962Z"
+    },
+    {
+      "message": "You have been invited to join group tes5.",
+      "timestamp": "2024-09-04T18:58:13.532Z"
+    },
+    {
+      "message": "You have been invited to join group sam4.",
+      "timestamp": "2024-09-04T19:05:17.568Z"
+    },
+    {
+      "message": "You have been invited to join group sam5.",
+      "timestamp": "2024-09-04T19:17:06.030Z"
+    },
+    {
+      "message": "You have been invited to join group 66.",
+      "timestamp": "2024-09-04T19:29:00.314Z"
+    },
+    {
+      "message": "You have been invited to join group 8.",
+      "timestamp": "2024-09-04T19:31:33.234Z"
+    },
+    {
+      "message": "You have been invited to join group 444.",
+      "timestamp": "2024-09-04T19:36:34.229Z"
     }
   ]
 ]

@@ -47,5 +47,12 @@
     "description": "test",
     "groupId": "4",
     "creator": "s1015"
+  },
+  {
+    "id": "ㅁㄴㅇㅁㄴ",
+    "name": "ㄴㅇㅁㅁㄴ",
+    "description": "ㄴㅁㅇㅁㄴ",
+    "groupId": "1",
+    "creator": "s1015"
   }
 ]

@@ -1,6 +1,6 @@
 <app-nav-bar></app-nav-bar>
 
-<!-- 상단 네비게이션 바 추가 -->
+<!-- 상단 네비게이션 바 -->
 <div class="group-navigation">
   <ul>
     <li (click)="showMembersTab()">Group Members</li>
@@ -11,11 +11,31 @@
 <!-- 그룹 멤버 리스트 -->
 <div *ngIf="showMembers" class="group-detail-container">
   <h2>Group Members</h2>
+
+  <!-- 그룹 관리자 -->
+  <h3>Group Admin</h3>
   <ul>
-    <li *ngFor="let member of groupMembers">
-      <strong>{{ member.firstName }} {{ member.lastName }}</strong> - {{ member.email }}
+    <li *ngFor="let admin of groupAdmins">
+      <strong>{{ admin.firstName }} {{ admin.lastName }}</strong> - {{ admin.email || admin.role }}
     </li>
   </ul>
+
+  <!-- 일반 유저 리스트 -->
+  <h3>Users</h3>
+  <ul>
+    <li *ngFor="let member of groupMembers">
+      <strong>{{ member.firstName }} {{ member.lastName }}</strong> - {{ member.email }} 
+      <span *ngIf="member.status === 'Pending'">(Pending)</span>
+      <span *ngIf="member.status === 'Accepted'">(Accepted)</span>
+    </li>
+  </ul>
+
+  <!-- 그룹에 새로운 유저 초대 -->
+  <div class="invite-user-container">
+    <h3>Invite User</h3>
+    <input type="email" [(ngModel)]="newUserEmail" placeholder="Enter user's email" />
+    <button (click)="inviteUser()">➕ Invite</button>
+  </div>
 </div>
 
 <!-- 그룹 채널 리스트 -->
@@ -26,7 +46,7 @@
   </ul>
 </div>
 
-<!-- 그룹 기본 정보 표시 -->
+<!-- 그룹 기본 정보 -->
 <div class="group-detail-container">
   <h1>{{ group?.name }}</h1>
   <p><strong>Description:</strong> {{ group?.description }}</p>

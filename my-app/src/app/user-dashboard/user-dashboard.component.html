@@ -2,6 +2,19 @@
   <app-nav-bar></app-nav-bar>
   <div class="dashboard-content">
     <h1>{{ title }}</h1>
-    <!-- 여기에 User 대시보드 콘텐츠 추가 -->
+    
+
+    <div *ngIf="filteredGroups.length > 0">
+      <h3>Your Accepted Groups</h3>
+      <div *ngFor="let group of filteredGroups">
+        <div (click)="navigateToGroup(group.id)">
+          <strong>{{ group.name }}</strong>
+          <p>{{ group.description }}</p>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="filteredGroups.length === 0">
+      <p>No accepted groups found.</p>
+    </div>
   </div>
 </div>

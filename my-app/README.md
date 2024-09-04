@@ -25,3 +25,36 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## Description
+
+The chat system is designed to facilitate real-time communication among users, grouped within designated channels and groups. This system incorporates a tiered permission structure to accommodate varying levels of administrative control and access:
+
+Super Admin:
+
+Ultimate control over the entire system.
+Can create or delete any groups and channels.
+Manages user roles and permissions across the system.
+Has oversight of all group activities and can intervene in any group or channel if necessary.
+
+Group Admin:
+
+Manages specific groups assigned to them.
+Can add or remove users from their groups.
+Responsible for creating and managing channels within their groups.
+Can moderate discussions and manage group-specific settings.
+
+User:
+
+Basic access level intended for general communication.
+Can join channels and participate in discussions as permitted by their group admin.
+Can view and send messages, share files, and engage in video calls within the channels they have access to.
+
+## Install CLI and open the server and localhost
+sudo npm install -g @angular/cli
+cd my-app
+sudo npm install
+ng serve --open
+
+cd server
+node index.js
