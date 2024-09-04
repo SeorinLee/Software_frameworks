@@ -30,57 +30,42 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 
 The chat system is designed to facilitate real-time communication among users, grouped within designated channels and groups. This system incorporates a tiered permission structure to accommodate varying levels of administrative control and access:
 
-Super Admin:
+### Super Admin:
 
-Ultimate control over the entire system.
-Can create or delete any groups and channels.
-Manages user roles and permissions across the system.
-Has oversight of all group activities and can intervene in any group or channel if necessary.
+- Ultimate control over the entire system.
+- Can create or delete any groups and channels.
+- Manages user roles and permissions across the system.
+- Has oversight of all group activities and can intervene in any group or channel if necessary.
 
-Group Admin:
+### Group Admin:
 
-Manages specific groups assigned to them.
-Can add or remove users from their groups.
-Responsible for creating and managing channels within their groups.
-Can moderate discussions and manage group-specific settings.
+- Manages specific groups assigned to them.
+- Can add or remove users from their groups.
+- Responsible for creating and managing channels within their groups.
+- Can moderate discussions and manage group-specific settings.
 
-User:
+### User:
 
-Basic access level intended for general communication.
-Can join channels and participate in discussions as permitted by their group admin.
-Can view and send messages, share files, and engage in video calls within the channels they have access to.
+- Basic access level intended for general communication.
+- Can join channels and participate in discussions as permitted by their group admin.
+- Can view and send messages, share files, and engage in video calls within the channels they have access to.
 
-## Install CLI and open the server and localhost
-Installation Instructions
+## Installation Instructions
+
 To set up a project on your local system, follow these steps:
 
-Verify that Node.js is installed on the system.
-Replicate the project repository: gitclone https://github.com/your-repo/s5310537-project.git
-Go to the project directory: cds5310537-project
-Install Angular CLI globally: npm install -g @angular/cli
-Go to the server directory: cd src/server
-Install server dependency: npm install
-Start server: node index.js
-Implementation Guidelines
+1. Verify that Node.js is installed on the system.
+2. Replicate the project repository: `git clone https://github.com/your-repo/s5310537-project.git`
+3. Go to the project directory: `cd s5310537-project`
+4. Install Angular CLI globally: `npm install -g @angular/cli`
+5. Go to the server directory: `cd src/server`
+6. Install server dependency: `npm install`
+7. Start server: `node index.js`
+
+## Implementation Guidelines
+
 To run the Angular Development Server:
 
-Start the Angular Development Server: ngserve --open
-This command automatically opens http://localhost:4200/ in the default browser.
-Changing the source file automatically reloads the application.
-development server
-Run ng serve for the development server. Go to http://localhost:4200/. The application will automatically reload whenever you change the source file.
-
-Code scaffolding
-Run ng generate component component-name to create a new component. You can also use ng generate directive|pipe|service|class|guard|interface|enum|module.
-
-Build
-Run ng build to build the project. Build artifacts are stored in the dist/ directory.
-
-Run a unit test
-To run the unit test through Karma, run ng test.
-
-Run end-to-end tests
-To run end-to-end testing, run nge2e. This command requires adding a package that implements end-to-end testing capabilities.
-
-Additional Help
-For additional help with the Angular CLI, use nghelp or visit the Angular CLI Overview and Command Reference page.
+- Start the Angular Development Server: `ng serve --open`
+  - This command automatically opens `http://localhost:4200/` in the default browser.
+  - Changing the source file automatically reloads the application.
