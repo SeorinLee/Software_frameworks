@@ -20,29 +20,30 @@ export class RegisterComponent {
   dob: string = '';
   email: string = '';
   password: string = '';
-  groups: string = '';  // groups 필드 추가
   errorMessage: string = '';
 
   constructor(private authService: AuthService, private router: Router) {}
 
   goBack(): void {
-    this.router.navigate(['/login']);  // Login 페이지로 이동
+    this.router.navigate(['/login']);  // Navigate back to the login page
   }
 
   onRegister(): void {
-    // username을 기반으로 role 자동 설정
     let roles: string[] = [];
-    if (this.username.startsWith('super')) {
+    
+    // Determine role based on username prefix
+    if (this.username.startsWith('s')) {
       roles = ['Super Admin'];
-    } else if (this.username.startsWith('group')) {
+    } else if (this.username.startsWith('g')) {
       roles = ['Group Admin'];
-    } else if (this.username.startsWith('user')) {
+    } else if (this.username.startsWith('u')) {
       roles = ['User'];
     } else {
-      this.errorMessage = 'Invalid username format. It must start with "super", "group", or "user".';
+      this.errorMessage = 'Username must start with "s" (Super Admin), "g" (Group Admin), or "u" (User).';
       return;
     }
 
+    // Prepare the new user object
     const newUser = {
       username: this.username,
       firstName: this.firstName,
@@ -50,34 +51,21 @@ export class RegisterComponent {
       dob: this.dob,
       email: this.email,
       password: this.password,
-      roles: roles,  // 자동 설정된 roles 사용
-      groups: this.groups.split(',')  // groups 필드 처리
+      roles: roles
     };
 
-    console.log('Registering user:', newUser);
-
+    // Call the registration service
     this.authService.register(newUser).subscribe({
       next: (success: boolean) => {
         if (success) {
           alert('Registration successful!');
-          this.router.navigate(['/login']);
+          this.router.navigate(['/login']);  // Redirect to login
         } else {
           this.errorMessage = 'Registration failed.';
         }
       },
       error: (error: HttpErrorResponse) => {
-        console.error('Registration error:', error);
-    
-        // 더 구체적인 오류 메시지 처리
-        if (error.status === 400) {
-          if (error.error && error.error.error) {
-            this.errorMessage = error.error.error;
-          } else {
-            this.errorMessage = 'Bad Request: Registration failed.';
-          }
-        } else {
-          this.errorMessage = `Error ${error.status}: ${error.statusText}`;
-        }
+        this.errorMessage = `Error: ${error.status} - ${error.error.message}`;
       }
     });
   }

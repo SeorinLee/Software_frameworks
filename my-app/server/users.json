@@ -1,65 +1,11 @@
 [
   {
-    "id": "2",
-    "username": "super77",
-    "password": "7777",
-    "email": "yms9074@gmail.com",
-    "roles": [
-      "Super Admin"
-    ],
-    "groups": [
-      ""
-    ],
-    "dob": "",
-    "firstName": "Rin",
-    "lastName": "Lee"
-  },
-  {
-    "id": "7",
-    "username": "super19",
-    "password": "1919",
-    "email": "",
-    "roles": [
-      "Super Admin"
-    ],
-    "groups": [
-      ""
-    ],
-    "dob": ""
-  },
-  {
-    "id": "10",
-    "username": "super66",
-    "password": "6666",
-    "email": "",
-    "roles": [
-      "Super Admin"
-    ],
-    "groups": [
-      ""
-    ],
-    "dob": ""
-  },
-  {
-    "id": "7",
-    "username": "user444",
-    "password": "4444",
-    "email": "",
-    "roles": [
-      "User"
-    ],
-    "groups": [
-      ""
-    ],
-    "dob": ""
-  },
-  {
     "id": "5",
-    "username": "group65",
+    "username": "super65",
     "password": "6565",
     "email": "",
     "roles": [
-      "Group Admin"
+      "Super Admin"
     ],
     "groups": [
       ""
@@ -67,16 +13,81 @@
     "dob": ""
   },
   {
-    "id": "6",
-    "username": "group0",
-    "password": "0000",
+    "id": "8",
+    "username": "super0",
+    "password": "0",
     "email": "",
     "roles": [
-      "Group Admin"
+      "Super Admin"
     ],
     "groups": [
       ""
     ],
     "dob": ""
+  },
+  {
+    "id": "11",
+    "username": "super54",
+    "password": "5",
+    "email": "",
+    "roles": [
+      "Super Admin"
+    ],
+    "groups": [
+      ""
+    ],
+    "dob": ""
+  },
+  {
+    "id": "12",
+    "username": " 4",
+    "password": "4",
+    "email": "",
+    "roles": [
+      null
+    ],
+    "groups": [
+      ""
+    ],
+    "dob": ""
+  },
+  {
+    "id": "13",
+    "username": "10",
+    "password": "1",
+    "email": "",
+    "roles": [
+      null
+    ],
+    "groups": [
+      ""
+    ],
+    "dob": ""
+  },
+  {
+    "id": "17",
+    "username": "s123",
+    "password": "2222",
+    "firstName": "Seorin",
+    "lastName": "Lee",
+    "email": "2@test.com",
+    "roles": [
+      "Super Admin"
+    ],
+    "groups": [],
+    "dob": "2024-09-18"
+  },
+  {
+    "id": "18",
+    "username": "u123",
+    "password": "1111",
+    "firstName": "Rin",
+    "lastName": "Lee",
+    "email": "3@test.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [],
+    "dob": "2024-09-03"
   }
 ]

@@ -2,7 +2,7 @@
   <div class="row main-content bg-success text-center">
     <div class="col-md-4 text-center company__info">
       <span class="company__logo">
-        <h2><img src="images/chatlogo.png" alt="Chat Logo" class="chat-logo"></h2>
+        <h2><img src="assets/images/chatlogo.png" alt="Chat Logo" class="chat-logo"></h2>
       </span>
     </div>
     <div class="col-md-8 col-xs-12 col-sm-12 login_form">
@@ -13,23 +13,22 @@
         <div class="row">
           <form (submit)="onLogin($event)" class="form-group">
             <div class="row">
-              <input type="email" name="email" id="email" [(ngModel)]="username" class="form__input" placeholder="Email" required>
+              <input type="email" name="email" id="email" [(ngModel)]="email" class="form__input" placeholder="Email" required>
             </div>
             <div class="row">
               <input type="password" name="password" id="password" [(ngModel)]="password" class="form__input" placeholder="Password" required>
             </div>
             <div class="row remember-me">
               <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" id="rememberMe">
-             <label for="rememberMe">Remember Me!</label>
-
-            </div>            
+              <label for="rememberMe">Remember Me!</label>
+            </div>
             <div class="row">
               <input type="submit" value="Submit" class="btn">
             </div>
           </form>
         </div>
         <div class="row">
-          <p>Don't have an account? <a [routerLink]="['/register']">Register Here</a></p> <!-- routerLink로 회원가입 페이지로 이동 -->
+          <p>Don't have an account? <a [routerLink]="['/register']">Register Here</a></p> <!-- 회원가입 링크 -->
         </div>
       </div>
     </div>

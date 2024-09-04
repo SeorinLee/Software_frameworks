@@ -57,7 +57,7 @@ app.get('/api/users', (req, res) => {
 app.get('/api/notifications/:id', (req, res) => {
   const userId = req.params.id;
   const userNotifications = notifications[userId] || [];
-  
+
   if (userNotifications.length > 0) {
     res.json(userNotifications);
   } else {
@@ -65,48 +65,72 @@ app.get('/api/notifications/:id', (req, res) => {
   }
 });
 
+// 사용자 인증 (로그인)
 app.post('/api/auth', (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
   
-  // username과 password가 일치하는 사용자 찾기
-  const user = users.find(u => u.username === username && u.password === password);
+  // email과 password로 사용자를 찾기
+  const user = users.find(u => u.email === email && u.password === password);
 
   if (user) {
-    // 유저네임 접두어에 따라 역할 업데이트
-    if (username.startsWith('super')) {
-      user.roles = ['Super Admin'];
-    } else if (username.startsWith('group')) {
-      user.roles = ['Group Admin'];
-    } else if (username.startsWith('user')) {
-      user.roles = ['User'];
+    const username = user.username;
+
+    // username 접두어에 따른 역할 설정
+    let role = '';
+    if (username.startsWith('s')) {
+      role = 'Super Admin';
+    } else if (username.startsWith('g')) {
+      role = 'Group Admin';
+    } else if (username.startsWith('u')) {
+      role = 'User';
     }
 
-    // 로그인 성공 시 업데이트된 사용자 정보 반환 (roles 포함)
-    saveFile(usersFilePath, users);  // 변경된 역할 저장
-    res.json(user);
+    user.roles = [role];  // 역할 업데이트
+
+    res.json(user);  // 사용자의 역할 정보 포함
   } else {
-    res.status(401).json({ error: 'Invalid username or password' });
+    res.status(401).json({ error: 'Invalid email or password' });
   }
 });
 
 
-
 // 사용자 회원가입
 app.post('/api/register', (req, res) => {
-  const { username, password, name, email, roles, groups, dob } = req.body;
+  const { username, password, firstName, lastName, email, dob } = req.body;
+
+  if (!username || !password || !firstName || !lastName || !email || !dob) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
 
   if (users.some(u => u.username === username)) {
     return res.status(400).json({ error: 'Username already exists' });
+  }
+
+  if (users.some(u => u.email === email)) {
+    return res.status(400).json({ error: 'Email already exists' });
+  }
+
+  // 역할을 username 접두어에 따라 설정
+  let roles = [];
+  if (username.startsWith('s')) {
+    roles = ['Super Admin'];
+  } else if (username.startsWith('g')) {
+    roles = ['Group Admin'];
+  } else if (username.startsWith('u')) {
+    roles = ['User'];
+  } else {
+    return res.status(400).json({ error: 'Username must start with "s", "g", or "u".' });
   }
 
   const newUser = {
     id: (users.length + 1).toString(),
     username,
     password,
-    name,
+    firstName,
+    lastName,
     email,
-    roles: roles || ['User'],
-    groups: groups || [],
+    roles,
+    groups: [],
     dob,
   };
 
@@ -124,13 +148,18 @@ app.put('/api/users/:id', (req, res) => {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  users[userIndex] = { ...users[userIndex], ...req.body };
-  saveFile(usersFilePath, users);
+  // 이름 필드 업데이트
+  const { firstName, lastName, email, dob } = req.body;
+  if (firstName) users[userIndex].firstName = firstName;
+  if (lastName) users[userIndex].lastName = lastName;
+  if (email) users[userIndex].email = email;
+  if (dob) users[userIndex].dob = dob;
 
+  saveFile(usersFilePath, users);
   res.json({ success: true, user: users[userIndex] });
 });
 
-// Super Admin이 사용자 역할을 변경
+// Super Admin이 사용자 역할을 변경하는 API (알림만 보냄)
 app.put('/api/super-admin/promote/:id', (req, res) => {
   const userId = req.params.id;
   const { newRole } = req.body;
@@ -140,46 +169,46 @@ app.put('/api/super-admin/promote/:id', (req, res) => {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  const updatedUser = users[userIndex];
-  if (!updatedUser.roles.includes(newRole)) {
-    updatedUser.roles.push(newRole);
+  if (!['Super Admin', 'Group Admin', 'User'].includes(newRole)) {
+    return res.status(400).json({ error: 'Invalid role specified' });
   }
 
-  saveFile(usersFilePath, users);
-  addNotification(userId, `Your role has been upgraded to ${newRole}.`);
+  // 역할 변경 알림을 보냄
+  addNotification(userId, `Your role has been changed to ${newRole}. Please accept the promotion in your notifications.`);
 
-  res.json({ success: true, user: updatedUser });
+  res.json({ success: true, message: `Promotion request sent to user ${users[userIndex].username}` });
 });
 
 // 사용자 역할 변경 수락
 app.post('/api/accept-promotion/:id', (req, res) => {
   const userId = req.params.id;
+  const { newRole } = req.body;
   const userIndex = users.findIndex(u => u.id === userId);
 
   if (userIndex === -1) {
     return res.status(404).json({ error: 'User not found' });
   }
 
+  if (!['Super Admin', 'Group Admin', 'User'].includes(newRole)) {
+    return res.status(400).json({ error: 'Invalid role specified' });
+  }
+
   let user = users[userIndex];
-  
+
   // 새로운 역할에 맞는 접두어 설정
   let rolePrefix = '';
-  let newRole = '';
   
-  if (user.roles.includes('Super Admin')) {
-    rolePrefix = 'super';
-    newRole = 'Super Admin';
-  } else if (user.roles.includes('Group Admin')) {
-    rolePrefix = 'group';
-    newRole = 'Group Admin';
-  } else if (user.roles.includes('User')) {
-    rolePrefix = 'group';  // Group Admin으로 승격
-    newRole = 'Group Admin';
+  if (newRole === 'Super Admin') {
+    rolePrefix = 's';
+  } else if (newRole === 'Group Admin') {
+    rolePrefix = 'g';
+  } else if (newRole === 'User') {
+    rolePrefix = 'u';
   }
 
   // 기존 접두어(super, group, user) 제거 후 새로운 접두어 추가
-  user.username = `${rolePrefix}${user.username.replace(/^(super|group|user)/, '')}`;
-
+  user.username = `${rolePrefix}${user.username.replace(/^(s|g|u)/, '')}`;
+  
   // 역할 업데이트
   user.roles = [newRole];  // 역할을 새롭게 설정
 
@@ -189,8 +218,6 @@ app.post('/api/accept-promotion/:id', (req, res) => {
 
   res.json({ success: true, newUsername: user.username, newRole: user.roles[0] });
 });
-
-
 
 // 그룹 생성
 app.post('/api/groups', (req, res) => {
@@ -217,7 +244,7 @@ app.post('/api/groups', (req, res) => {
 // 그룹 삭제
 app.delete('/api/groups/:id', (req, res) => {
   const groupId = req.params.id;
-  const { user } = req.body;
+  const user = JSON.parse(req.headers.user); // 사용자 정보는 헤더에서 받아옴
   const groupIndex = groups.findIndex(group => group.id === groupId);
 
   if (groupIndex === -1) {
@@ -276,7 +303,7 @@ app.post('/api/groups/:groupId/channels', (req, res) => {
 // 채널 삭제
 app.delete('/api/groups/:groupId/channels/:channelId', (req, res) => {
   const { groupId, channelId } = req.params;
-  const { user } = req.body;
+  const user = JSON.parse(req.headers.user); // 사용자 정보는 헤더에서 받아옴
   const channelIndex = channels.findIndex(channel => channel.id === channelId && channel.groupId === groupId);
 
   if (channelIndex === -1) {
@@ -295,33 +322,27 @@ app.delete('/api/groups/:groupId/channels/:channelId', (req, res) => {
 });
 
 // 그룹 내 채널 조회
-// 그룹 내 채널 조회 API
 app.get('/api/groups/:groupId/channels', (req, res) => {
   const { groupId } = req.params;
-  
+
   // 해당 그룹의 채널을 필터링
   const groupChannels = channels.filter(channel => channel.groupId === groupId);
 
   // 채널이 없을 경우 빈 배열을 반환
-  if (!groupChannels) {
-    return res.status(404).json({ message: 'No channels found for this group' });
-  }
-
-  // 유효한 데이터로 응답
   res.json(groupChannels);
 });
 
 // 사용자 삭제 (Super Admin)
 app.delete('/api/super-admin/delete/:id', (req, res) => {
-  const userId = req.params.id;
-  const userIndex = users.findIndex(u => u.id === userId);
+  const userId = req.params.id;  // 경로에서 user ID를 추출
+  const userIndex = users.findIndex(u => u.id === userId);  // 사용자 찾기
 
   if (userIndex === -1) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({ error: 'User not found' });  // 사용자를 찾지 못하면 오류 반환
   }
 
-  users.splice(userIndex, 1);
-  saveFile(usersFilePath, users);
+  users.splice(userIndex, 1);  // 사용자 삭제
+  saveFile(usersFilePath, users);  // 파일에 저장
 
   res.json({ success: true });
 });
@@ -331,13 +352,6 @@ app.get('/api/groups/:groupId/members', (req, res) => {
   const { groupId } = req.params;
   const members = users.filter(user => user.groups.includes(groupId));
   res.json(members);
-});
-
-// 그룹 채널 조회 API
-app.get('/api/groups/:groupId/channels', (req, res) => {
-  const { groupId } = req.params;
-  const groupChannels = channels.filter(channel => channel.groupId === groupId);
-  res.json(groupChannels);
 });
 
 // 서버 실행

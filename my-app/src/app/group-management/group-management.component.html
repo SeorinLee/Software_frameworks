@@ -1,6 +1,6 @@
 <div class="group-management-container">
   <h2>Group Management</h2>
-  <table>
+  <table *ngIf="groupAdmins.length > 0; else noAdmins">
     <thead>
       <tr>
         <th>Username</th>
@@ -21,4 +21,7 @@
       </tr>
     </tbody>
   </table>
+  <ng-template #noAdmins>
+    <p>No group admins available.</p>
+  </ng-template>
 </div>

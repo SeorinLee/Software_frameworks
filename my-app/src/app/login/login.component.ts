@@ -14,7 +14,7 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, FormsModule, HttpClientModule, RouterModule]
 })
 export class LoginComponent {
-  username: string = '';
+  email: string = '';  // 이메일로 로그인
   password: string = '';
   rememberMe: boolean = false;
   errorMessage: string = '';
@@ -24,7 +24,7 @@ export class LoginComponent {
   onLogin(event: Event): void {
     event.preventDefault();
 
-    this.authService.login(this.username, this.password).subscribe({
+    this.authService.login(this.email, this.password).subscribe({
       next: (response: any) => {
         if (this.rememberMe) {
           localStorage.setItem('user', JSON.stringify(response));
@@ -32,11 +32,21 @@ export class LoginComponent {
           sessionStorage.setItem('user', JSON.stringify(response));
         }
 
-        const role = response.roles?.[0];  // Get the first role
+        const username = response.username;  // 서버에서 받은 username 사용
+        let role = '';
 
-        console.log('Logged in with role:', role);
+        // username의 접두어를 바탕으로 role 설정
+        if (username.startsWith('s')) {
+          role = 'Super Admin';
+        } else if (username.startsWith('g')) {
+          role = 'Group Admin';
+        } else if (username.startsWith('u')) {
+          role = 'User';
+        }
 
-        // Redirect based on role
+        response.roles = [role];  // 역할을 response에 추가
+
+        // 역할에 따라 페이지 리다이렉트
         if (role === 'Super Admin') {
           this.router.navigate(['/super-admin']);
         } else if (role === 'Group Admin') {
@@ -49,7 +59,7 @@ export class LoginComponent {
         }
       },
       error: () => {
-        alert('Invalid username or password');
+        alert('Invalid email or password');
       }
     });
   }

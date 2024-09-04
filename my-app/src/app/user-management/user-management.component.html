@@ -1,6 +1,6 @@
 <div class="user-management-container">
   <h2>User Management</h2>
-  <table>
+  <table *ngIf="users.length > 0">
     <thead>
       <tr>
         <th>Username</th>
@@ -15,8 +15,22 @@
         <td>{{ user.email }}</td>
         <td>{{ user.roles.join(', ') }}</td>
         <td>
-          <button (click)="promoteToGroupAdmin(user.id)">Promote to Group Admin</button>
-          <button (click)="removeUser(user.id)">Delete User</button>
+          <!-- Super Admin은 드롭다운과 버튼 숨김 -->
+          <ng-container *ngIf="!user.roles.includes('Super Admin')">
+            <select [(ngModel)]="user.selectedRole">
+              <option value="" disabled selected>Select role</option>
+              <option value="User">User</option>
+              <option value="Group Admin">Group Admin</option>
+              <option value="Super Admin">Super Admin</option>
+            </select>
+            <button (click)="changeUserRole(user)">Update Role</button>
+          </ng-container>
+
+          <!-- Group Admin 또는 User만 삭제 가능 -->
+          <button *ngIf="user.roles.includes('Group Admin') || user.roles.includes('User')" 
+                  (click)="removeUser(user)">
+            Delete
+          </button>
         </td>
       </tr>
     </tbody>
