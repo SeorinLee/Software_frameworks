@@ -52,9 +52,15 @@ Can view and send messages, share files, and engage in video calls within the ch
 
 ## Install CLI and open the server and localhost
 sudo npm install -g @angular/cli
+
 cd my-app
+
 sudo npm install
+
 ng serve --open
 
+
+
 cd server
+
 node index.js
