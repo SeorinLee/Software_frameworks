@@ -51,6 +51,8 @@ Can join channels and participate in discussions as permitted by their group adm
 Can view and send messages, share files, and engage in video calls within the channels they have access to.
 
 ## Install CLI and open the server and localhost
+git clone https://github.com/SeorinLee/Software_frameworks.git
+
 sudo npm install -g @angular/cli
 
 cd my-app
