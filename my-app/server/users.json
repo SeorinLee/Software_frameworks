@@ -26,19 +26,6 @@
     "dob": "2024-09-19"
   },
   {
-    "id": "5",
-    "username": "g1015",
-    "password": "1111",
-    "firstName": "sam",
-    "lastName": "sam",
-    "email": "1test@test.com",
-    "roles": [
-      "Group Admin"
-    ],
-    "groups": [],
-    "dob": "2024-09-12"
-  },
-  {
     "id": "6",
     "username": "u981015",
     "password": "9074",

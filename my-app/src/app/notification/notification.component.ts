@@ -48,34 +48,37 @@ export class NotificationComponent {
     const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
     
     if (user && user.id && this.selectedNotification) {
-      // 메시지 내 그룹 ID 형식을 변경 또는 JSON 데이터에서 직접 그룹 ID를 받을 수 있는 구조로 개선
-      const groupIdMatch = this.selectedNotification.message.match(/group (\w+)/);  // 숫자뿐 아니라 문자로도 그룹 ID 추출 가능
+      // 알림 메시지에서 역할 변경 관련 메시지 구분
+      if (this.selectedNotification.message.includes('role has been changed to')) {
+        let newRole = this.selectedNotification.message.split('to ')[1].trim();
+        
+        // 역할 뒤에 "Please accept the promotion in your notifications."가 있으면 이를 제거
+        if (newRole.includes('.')) {
+          newRole = newRole.split('.')[0].trim();  // "."로 나눈 후 첫 번째 부분만 취함
+        }
   
-      if (groupIdMatch && groupIdMatch[1]) {
-        const groupId = groupIdMatch[1];  // 그룹 ID 추출
-        console.log(`Extracted groupId: ${groupId}`);  // 디버깅용 로그 추가
+        // 디버깅: newRole 값을 콘솔에 출력
+        console.log('Extracted newRole:', `"${newRole}"`);
   
-        this.http.post<any>(`http://localhost:4002/api/groups/${groupId}/accept-invite`, { userId: user.id }).subscribe({
-          next: () => {
-            alert('Invitation accepted. The group has been added to your dashboard.');
-            this.router.navigate(['/user-dashboard']);  // 대시보드로 이동
-          },
-          error: (error) => {
-            if (error.status === 404) {
-              console.error('Error: Group or user not found.');
-            } else if (error.status === 400) {
-              console.error('Error: User is not invited to this group.');
-            } else {
-              console.error('Error accepting invitation:', error);
+        // newRole 값이 서버에서 허용하는 역할인지 확인
+        if (['Super Admin', 'Group Admin', 'User'].includes(newRole)) {
+          this.http.post<any>(`http://localhost:4002/api/accept-promotion/${user.id}`, { newRole }).subscribe({
+            next: () => {
+              alert('Promotion accepted.');
+              this.router.navigate(['/user-dashboard']);
+            },
+            error: (error) => {
+              console.error('Error accepting promotion:', error);
             }
-          }
-        });
+          });
+        } else {
+          console.error('Invalid role specified:', newRole);
+        }
       } else {
-        console.error('Group ID not found in the notification message');
+        console.error('Notification does not contain a role change message');
       }
     }
-  }  
-  
+  }
   
   
 

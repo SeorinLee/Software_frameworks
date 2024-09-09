@@ -12,7 +12,28 @@
       "timestamp": "2024-09-09T02:43:49.392Z"
     }
   ],
-  null,
+  [
+    {
+      "message": "Your role has been changed to Group Admin. Please accept the promotion in your notifications.",
+      "timestamp": "2024-09-09T10:08:27.820Z"
+    },
+    {
+      "message": "Your role has been changed to User. Please accept the promotion in your notifications.",
+      "timestamp": "2024-09-09T10:08:38.137Z"
+    },
+    {
+      "message": "Your role has been changed to User. Please accept the promotion in your notifications.",
+      "timestamp": "2024-09-09T11:28:48.060Z"
+    },
+    {
+      "message": "Your role has been changed to User. Please accept the promotion in your notifications.",
+      "timestamp": "2024-09-09T11:41:30.327Z"
+    },
+    {
+      "message": "Your role has been changed to User. Please accept the promotion in your notifications.",
+      "timestamp": "2024-09-09T11:42:59.074Z"
+    }
+  ],
   [
     {
       "message": "Your role has been upgraded to Super Admin.",

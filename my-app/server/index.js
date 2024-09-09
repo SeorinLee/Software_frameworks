@@ -15,6 +15,12 @@ const notificationsFilePath = path.join(__dirname, 'notifications.json');
 const groupsFilePath = path.join(__dirname, 'groups.json');
 const channelsFilePath = path.join(__dirname, 'channels.json');
 
+// CORS 설정
+app.use(cors({
+  origin: 'http://localhost:4200',  // Angular 애플리케이션이 실행되는 도메인
+  credentials: true,  // 쿠키를 포함한 자격 증명을 허용
+}));
+
 // 파일을 로드하는 유틸리티 함수
 function loadFile(filePath) {
   if (fs.existsSync(filePath)) {
@@ -162,10 +168,11 @@ app.put('/api/users/:id', (req, res) => {
 // Super Admin이 사용자 역할을 변경하는 API (알림만 보냄)
 app.put('/api/super-admin/promote/:id', (req, res) => {
   const userId = req.params.id;
-  const { newRole } = req.body;
+  const newRole = req.body.newRole;  // newRole을 req.body에서 가져옵니다.
   const userIndex = users.findIndex(u => u.id === userId);
 
   if (userIndex === -1) {
+    console.error(`User with ID ${userId} not found`);
     return res.status(404).json({ error: 'User not found' });
   }
 
@@ -179,45 +186,61 @@ app.put('/api/super-admin/promote/:id', (req, res) => {
   res.json({ success: true, message: `Promotion request sent to user ${users[userIndex].username}` });
 });
 
-// 사용자 역할 변경 수락
+
 app.post('/api/accept-promotion/:id', (req, res) => {
   const userId = req.params.id;
-  const { newRole } = req.body;
-  const userIndex = users.findIndex(u => u.id === userId);
+  let { newRole } = req.body;
 
+  console.log('Received newRole:', `"${newRole}"`);  // 디버깅용 로그 추가
+  
+  // 공백 제거 및 소문자로 변환하여 처리
+  newRole = newRole.trim().toLowerCase();
+
+  // 사용자 찾기
+  const userIndex = users.findIndex(u => u.id === userId);
+  
   if (userIndex === -1) {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  if (!['Super Admin', 'Group Admin', 'User'].includes(newRole)) {
+  // 소문자로 변환된 newRole과 서버에서 허용하는 역할을 비교
+  const roleMapping = {
+    'super admin': 'Super Admin',
+    'group admin': 'Group Admin',
+    'user': 'User'
+  };
+
+  if (!roleMapping[newRole]) {
+    console.error('Invalid role specified on server:', newRole);  // 디버깅 로그
     return res.status(400).json({ error: 'Invalid role specified' });
   }
 
-  let user = users[userIndex];
+  const rolePrefixMapping = {
+    'Super Admin': 's',
+    'Group Admin': 'g',
+    'User': 'u'
+  };
 
-  // 새로운 역할에 맞는 접두어 설정
-  let rolePrefix = '';
-  
-  if (newRole === 'Super Admin') {
-    rolePrefix = 's';
-  } else if (newRole === 'Group Admin') {
-    rolePrefix = 'g';
-  } else if (newRole === 'User') {
-    rolePrefix = 'u';
-  }
+  const user = users[userIndex];
+  const newRoleFormatted = roleMapping[newRole];  // 원래 대문자로 포맷팅된 역할
+  const rolePrefix = rolePrefixMapping[newRoleFormatted];
 
-  // 기존 접두어(super, group, user) 제거 후 새로운 접두어 추가
+  // 기존 접두어(s, g, u) 제거 후 새로운 접두어 추가
   user.username = `${rolePrefix}${user.username.replace(/^(s|g|u)/, '')}`;
-  
-  // 역할 업데이트
-  user.roles = [newRole];  // 역할을 새롭게 설정
 
+  // 역할 업데이트
+  user.roles = [newRoleFormatted];  // 역할을 새롭게 설정
+
+  // 변경된 사용자 데이터 저장
   saveFile(usersFilePath, users);
-  notifications[userId] = [];  // 알림 삭제
+
+  // 해당 사용자 알림 삭제
+  notifications[userId] = [];
   saveFile(notificationsFilePath, notifications);
 
   res.json({ success: true, newUsername: user.username, newRole: user.roles[0] });
 });
+
 
 // 그룹 생성
 app.post('/api/groups', (req, res) => {
@@ -279,6 +302,25 @@ app.get('/api/groups/:id', (req, res) => {
 
   res.json(group);
 });
+
+//사용자(ID 기반)가 속한 그룹 정보
+app.get('/api/users/:id/groups', (req, res) => {
+  const userId = req.params.id;
+  const user = users.find(u => u.id === userId);
+
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  const userGroups = user.groups || [];
+
+  if (userGroups.length === 0) {
+    return res.status(200).json({ groups: [] });  // 그룹이 없는 경우 빈 배열 반환
+  }
+
+  res.json({ groups: userGroups });
+});
+
 
 // 채널 생성
 app.post('/api/groups/:groupId/channels', (req, res) => {

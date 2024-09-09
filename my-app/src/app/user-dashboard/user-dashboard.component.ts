@@ -35,11 +35,18 @@ loadUserGroups() {
         this.filterGroups();  // 필터링한 그룹을 대시보드에 표시
       },
       error: (error) => {
-        console.error('Error loading user groups:', error);  // 에러 처리
+        if (error.status === 404) {
+          console.warn('No groups found for this user.');
+          this.groups = [];  // 에러 발생 시 빈 그룹 목록 설정
+        } else {
+          console.error('Error loading user groups:', error);  // 그 외 에러 처리
+        }
       }
     });
   }
 }
+
+
 
   // 그룹을 필터링하는 함수
   filterGroups(searchTerm: string = '') {
