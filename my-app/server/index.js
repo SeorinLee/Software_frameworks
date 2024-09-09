@@ -68,10 +68,14 @@ app.get('/api/notifications/:id', (req, res) => {
 // 사용자 인증 (로그인)
 app.post('/api/auth', (req, res) => {
   const { email, password } = req.body;
+  
+  // email과 password로 사용자를 찾기
   const user = users.find(u => u.email === email && u.password === password);
 
   if (user) {
     const username = user.username;
+
+    // username 접두어에 따른 역할 설정
     let role = '';
     if (username.startsWith('s')) {
       role = 'Super Admin';
@@ -81,12 +85,14 @@ app.post('/api/auth', (req, res) => {
       role = 'User';
     }
 
-    user.roles = [role];
-    res.json(user);
+    user.roles = [role];  // 역할 업데이트
+
+    res.json(user);  // 사용자의 역할 정보 포함
   } else {
     res.status(401).json({ error: 'Invalid email or password' });
   }
 });
+
 
 // 사용자 회원가입
 app.post('/api/register', (req, res) => {
@@ -104,6 +110,7 @@ app.post('/api/register', (req, res) => {
     return res.status(400).json({ error: 'Email already exists' });
   }
 
+  // 역할을 username 접두어에 따라 설정
   let roles = [];
   if (username.startsWith('s')) {
     roles = ['Super Admin'];
@@ -141,6 +148,7 @@ app.put('/api/users/:id', (req, res) => {
     return res.status(404).json({ error: 'User not found' });
   }
 
+  // 이름 필드 업데이트
   const { firstName, lastName, email, dob } = req.body;
   if (firstName) users[userIndex].firstName = firstName;
   if (lastName) users[userIndex].lastName = lastName;
@@ -151,20 +159,65 @@ app.put('/api/users/:id', (req, res) => {
   res.json({ success: true, user: users[userIndex] });
 });
 
-// 사용자 삭제 (Super Admin)
-app.delete('/api/users/delete/:id', (req, res) => {
-  const userId = req.params.id;  // 문자열로 처리
-  const userIndex = users.findIndex(u => u.id === userId);  // 문자열로 비교
+// Super Admin이 사용자 역할을 변경하는 API (알림만 보냄)
+app.put('/api/super-admin/promote/:id', (req, res) => {
+  const userId = req.params.id;
+  const { newRole } = req.body;
+  const userIndex = users.findIndex(u => u.id === userId);
 
   if (userIndex === -1) {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  users.splice(userIndex, 1);
-  saveFile(usersFilePath, users);
-  res.json({ success: true });
+  if (!['Super Admin', 'Group Admin', 'User'].includes(newRole)) {
+    return res.status(400).json({ error: 'Invalid role specified' });
+  }
+
+  // 역할 변경 알림을 보냄
+  addNotification(userId, `Your role has been changed to ${newRole}. Please accept the promotion in your notifications.`);
+
+  res.json({ success: true, message: `Promotion request sent to user ${users[userIndex].username}` });
 });
 
+// 사용자 역할 변경 수락
+app.post('/api/accept-promotion/:id', (req, res) => {
+  const userId = req.params.id;
+  const { newRole } = req.body;
+  const userIndex = users.findIndex(u => u.id === userId);
+
+  if (userIndex === -1) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  if (!['Super Admin', 'Group Admin', 'User'].includes(newRole)) {
+    return res.status(400).json({ error: 'Invalid role specified' });
+  }
+
+  let user = users[userIndex];
+
+  // 새로운 역할에 맞는 접두어 설정
+  let rolePrefix = '';
+  
+  if (newRole === 'Super Admin') {
+    rolePrefix = 's';
+  } else if (newRole === 'Group Admin') {
+    rolePrefix = 'g';
+  } else if (newRole === 'User') {
+    rolePrefix = 'u';
+  }
+
+  // 기존 접두어(super, group, user) 제거 후 새로운 접두어 추가
+  user.username = `${rolePrefix}${user.username.replace(/^(s|g|u)/, '')}`;
+  
+  // 역할 업데이트
+  user.roles = [newRole];  // 역할을 새롭게 설정
+
+  saveFile(usersFilePath, users);
+  notifications[userId] = [];  // 알림 삭제
+  saveFile(notificationsFilePath, notifications);
+
+  res.json({ success: true, newUsername: user.username, newRole: user.roles[0] });
+});
 
 // 그룹 생성
 app.post('/api/groups', (req, res) => {
@@ -191,19 +244,7 @@ app.post('/api/groups', (req, res) => {
 // 그룹 삭제
 app.delete('/api/groups/:id', (req, res) => {
   const groupId = req.params.id;
-  const userHeader = req.headers.user;
-
-  if (!userHeader) {
-    return res.status(400).json({ error: 'User information missing in headers.' });
-  }
-
-  let user;
-  try {
-    user = JSON.parse(userHeader);
-  } catch (err) {
-    return res.status(400).json({ error: 'Invalid user information in headers.' });
-  }
-
+  const user = JSON.parse(req.headers.user); // 사용자 정보는 헤더에서 받아옴
   const groupIndex = groups.findIndex(group => group.id === groupId);
 
   if (groupIndex === -1) {
@@ -211,26 +252,19 @@ app.delete('/api/groups/:id', (req, res) => {
   }
 
   const group = groups[groupIndex];
-
-  if (user.roles.includes('Super Admin') || (user.roles.includes('Group Admin') && group.creator === user.username)) {
-    groups.splice(groupIndex, 1);
-    saveFile(groupsFilePath, groups);
-    res.status(200).json({ message: 'Group deleted successfully' });
-  } else {
-    res.status(403).json({ error: 'You do not have permission to delete this group.' });
+  if (user.roles.includes('Group Admin') && group.creator !== user.username) {
+    return res.status(403).json({ error: 'You do not have permission to delete this group.' });
   }
+
+  groups.splice(groupIndex, 1);
+  saveFile(groupsFilePath, groups);
+
+  res.status(200).json({ message: 'Group deleted successfully' });
 });
 
 // 그룹 조회
 app.get('/api/groups', (req, res) => {
-  const userHeader = req.headers.user;
-  let user;
-  try {
-    user = JSON.parse(userHeader);
-  } catch (err) {
-    return res.status(400).json({ error: 'Invalid user information in headers.' });
-  }
-
+  const user = JSON.parse(req.headers.user);
   const userGroups = user.roles.includes('Super Admin') ? groups : groups.filter(group => group.creator === user.username);
   res.json(userGroups);
 });
@@ -266,18 +300,57 @@ app.post('/api/groups/:groupId/channels', (req, res) => {
   res.status(201).json(newChannel);
 });
 
+// 그룹 삭제
+app.delete('/api/groups/:id', (req, res) => {
+  const groupId = req.params.id;
+  
+  // 사용자 정보를 헤더에서 가져옵니다.
+  const user = JSON.parse(req.headers.user); 
+  
+  const groupIndex = groups.findIndex(group => group.id === groupId);
+
+  if (groupIndex === -1) {
+    return res.status(404).json({ error: 'Group not found' });
+  }
+
+  const group = groups[groupIndex];
+  
+  // Group Admin이 자신이 생성한 그룹만 삭제할 수 있고, Super Admin은 모든 그룹을 삭제할 수 있음
+  if (user.roles.includes('Super Admin') || (user.roles.includes('Group Admin') && group.creator === user.username)) {
+    groups.splice(groupIndex, 1);  // 그룹 삭제
+    saveFile(groupsFilePath, groups);  // 삭제 후 파일에 저장
+    res.status(200).json({ message: 'Group deleted successfully' });
+  } else {
+    res.status(403).json({ error: 'You do not have permission to delete this group.' });
+  }
+});
+
+
+// 그룹 내 채널 조회
+app.get('/api/groups/:groupId/channels', (req, res) => {
+  const { groupId } = req.params;
+
+  // 해당 그룹의 채널을 필터링
+  const groupChannels = channels.filter(channel => channel.groupId === groupId);
+
+  // 채널이 없을 경우 빈 배열을 반환
+  res.json(groupChannels);
+});
+
 // 채널 삭제
 app.delete('/api/groups/:groupId/channels/:channelId', (req, res) => {
   const { groupId, channelId } = req.params;
-  const userHeader = req.headers.user;
 
+  // 사용자 정보를 헤더에서 가져옴. 헤더가 비어 있으면 오류 반환.
+  const userHeader = req.headers.user;
+  
   if (!userHeader) {
     return res.status(400).json({ error: 'User information missing in headers.' });
   }
 
   let user;
   try {
-    user = JSON.parse(userHeader);
+    user = JSON.parse(userHeader);  // JSON 문자열을 객체로 파싱
   } catch (err) {
     return res.status(400).json({ error: 'Invalid user information in headers.' });
   }
@@ -290,13 +363,44 @@ app.delete('/api/groups/:groupId/channels/:channelId', (req, res) => {
 
   const channel = channels[channelIndex];
 
+  // Group Admin이 자신이 생성한 채널만 삭제할 수 있음, Super Admin은 모든 채널 삭제 가능
   if (user.roles.includes('Super Admin') || (user.roles.includes('Group Admin') && channel.creator === user.username)) {
-    channels.splice(channelIndex, 1);
-    saveFile(channelsFilePath, channels);
+    channels.splice(channelIndex, 1);  // 채널 삭제
+    saveFile(channelsFilePath, channels);  // 삭제 후 파일에 저장
     res.status(200).json({ message: 'Channel deleted successfully' });
   } else {
     res.status(403).json({ error: 'You do not have permission to delete this channel.' });
   }
+});
+
+// 사용자 삭제 
+
+app.delete('/api/users/delete/:id', (req, res) => {
+  const userId = req.params.id;  // 문자열로 처리
+  const userIndex = users.findIndex(u => u.id === userId);  // 문자열로 비교
+
+  if (userIndex === -1) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  users.splice(userIndex, 1);
+  saveFile(usersFilePath, users);
+  res.json({ success: true });
+});
+
+
+// Super Admin이 사용자 삭제
+app.delete('/api/super-admin/delete/:id', (req, res) => {
+  const userId = req.params.id;
+  const userIndex = users.findIndex(u => u.id === userId);
+
+  if (userIndex === -1) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  users.splice(userIndex, 1);
+  saveFile(usersFilePath, users);
+  res.json({ success: true });
 });
 
 // 그룹 멤버 조회 API
@@ -306,7 +410,27 @@ app.get('/api/groups/:groupId/members', (req, res) => {
   res.json(members);
 });
 
+// 그룹 초대 API
+app.post('/api/groups/:groupId/invite', (req, res) => {
+  const { email, groupId } = req.body;
+  const user = users.find(u => u.email === email);
+
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  if (!user.groups.some(g => g.groupId === groupId)) {
+    user.groups.push({ groupId, status: 'Pending' });
+    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
+    addNotification(user.id, `You have been invited to join group ${groupId}.`);
+    res.status(200).json({ message: 'User invited successfully.' });
+  } else {
+    res.status(400).json({ error: 'User is already in the group.' });
+  }
+});
 // 서버 실행
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
+

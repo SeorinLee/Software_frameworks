@@ -1,48 +1,5 @@
 [
   {
-    "id": "18",
-    "username": "u123",
-    "password": "1111",
-    "firstName": "Rin",
-    "lastName": "Lee",
-    "email": "3@test.com",
-    "roles": [
-      "User"
-    ],
-    "groups": [
-      "8",
-      {
-        "groupId": "34",
-        "status": "Accepted"
-      },
-      {
-        "groupId": "tes5",
-        "status": "Pending"
-      },
-      {
-        "groupId": "sam4",
-        "status": "Accepted"
-      },
-      {
-        "groupId": "sam5",
-        "status": "Accepted"
-      },
-      {
-        "groupId": "66",
-        "status": "Accepted"
-      },
-      {
-        "groupId": "8",
-        "status": "Accepted"
-      },
-      {
-        "groupId": "444",
-        "status": "Accepted"
-      }
-    ],
-    "dob": "2024-09-03"
-  },
-  {
     "id": "2",
     "username": "s1015",
     "password": "9074",
@@ -54,26 +11,6 @@
     ],
     "groups": [],
     "dob": "2022-01-05"
-  },
-  {
-    "id": "3",
-    "username": "u333",
-    "password": "0000",
-    "firstName": "test",
-    "lastName": "test",
-    "email": "6@test.com",
-    "roles": [
-      "User"
-    ],
-    "groups": [
-      "8",
-      "34",
-      {
-        "groupId": "34",
-        "status": "Accepted"
-      }
-    ],
-    "dob": "2024-09-19"
   },
   {
     "id": "4",
@@ -100,5 +37,18 @@
     ],
     "groups": [],
     "dob": "2024-09-12"
+  },
+  {
+    "id": "6",
+    "username": "u981015",
+    "password": "9074",
+    "firstName": "Rin",
+    "lastName": "Lee",
+    "email": "test10@test.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [],
+    "dob": "2024-05-24"
   }
 ]
