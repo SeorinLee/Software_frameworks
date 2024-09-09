@@ -26,16 +26,21 @@
     "dob": "2024-09-19"
   },
   {
-    "id": "6",
-    "username": "u981015",
+    "id": "3",
+    "username": "u1",
     "password": "9074",
-    "firstName": "Rin",
-    "lastName": "Lee",
-    "email": "test10@test.com",
+    "firstName": "user1",
+    "lastName": "test",
+    "email": "test1@user.com",
     "roles": [
       "User"
     ],
-    "groups": [],
-    "dob": "2024-05-24"
+    "groups": [
+      {
+        "groupId": "1",
+        "status": "Pending"
+      }
+    ],
+    "dob": "2024-09-05"
   }
 ]
