@@ -575,6 +575,33 @@ app.get('/api/groups/:groupId', (req, res) => {
   res.json(group);
 });
 
+// 사용자 이메일 검색 API
+app.get('/api/users/search', (req, res) => {
+  const { email } = req.query;  // 쿼리로 이메일을 받아옴
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email query is required' });
+  }
+
+  // 이메일을 포함하는 사용자를 검색
+  const matchingUsers = users.filter(u => u.email.includes(email));
+
+  if (matchingUsers.length === 0) {
+    return res.status(404).json({ error: 'No users found' });
+  }
+
+  // 검색된 사용자의 이름과 이메일만 반환
+  const result = matchingUsers.map(user => ({
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email
+  }));
+
+  res.json(result);
+});
+
+
 
 // 서버 실행
 app.listen(port, () => {

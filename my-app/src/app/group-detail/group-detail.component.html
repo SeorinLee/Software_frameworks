@@ -30,11 +30,22 @@
     </li>
   </ul>
 
-  <!-- 그룹에 새로운 유저 초대 -->
+  <!-- 유저 이름 검색 및 초대 -->
   <div class="invite-user-container">
-    <h3>Invite User</h3>
-    <input type="email" [(ngModel)]="newUserEmail" placeholder="Enter user's email" />
-    <button (click)="inviteUser()">➕ Invite</button>
+    <h3>Search & Invite User by Name or Email</h3>
+    <input type="text" [(ngModel)]="searchName" placeholder="Enter user's name or email to search" />
+    <button (click)="searchUser()">🔍 Search</button>
+  </div>
+
+  <!-- 검색된 사용자 리스트 -->
+  <div *ngIf="searchedUsers.length > 0">
+    <h3>Search Results</h3>
+    <ul>
+      <li *ngFor="let user of searchedUsers">
+        <strong>{{ user.firstName }} {{ user.lastName }}</strong> - {{ user.email }}
+        <button (click)="inviteUser(user.username)">➕ Invite</button>
+      </li>
+    </ul>
   </div>
 </div>
 

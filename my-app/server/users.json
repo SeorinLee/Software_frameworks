@@ -9,7 +9,12 @@
     "roles": [
       "Super Admin"
     ],
-    "groups": [],
+    "groups": [
+      {
+        "groupId": "1725892521297",
+        "status": "Pending"
+      }
+    ],
     "dob": "2022-01-05"
   },
   {

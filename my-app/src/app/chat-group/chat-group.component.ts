@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';  // CommonModule 임포트
 import { FormsModule } from '@angular/forms';  // FormsModule 임포트
 import { NavBarComponent } from '../nav-bar/nav-bar.component';
 import { AuthService } from '../auth.service';  // AuthService 추가
-import { Router } from '@angular/router';  // Router 임포트
 
 @Component({
   selector: 'app-chat-group',
@@ -19,7 +18,7 @@ export class ChatGroupComponent {
   newGroupDescription: string = '';
   showCreateGroupForm: boolean = false;  
 
-  constructor(private http: HttpClient, private authService: AuthService, private router: Router) {  // Router 추가
+  constructor(private http: HttpClient, private authService: AuthService) {  // AuthService DI 추가
     this.loadGroups();
   }
 
@@ -30,29 +29,31 @@ export class ChatGroupComponent {
     });
   }
 
-  // 그룹 생성 후 서버에서 반환된 그룹 ID를 사용
-  // 그룹 생성 후 GroupDetailComponent로 라우팅
   createGroup() {
     if (!this.newGroupName || !this.newGroupDescription) {
-      alert('모든 필드를 입력해주세요.');
+      alert('All fields are required');
       return;
     }
 
-    const user = this.authService.getStoredUser();
+    const user = this.authService.getStoredUser(); // 현재 로그인한 사용자 정보
     const newGroup = {
+      id: Date.now().toString(),  // 고유한 그룹 ID 자동 생성
       name: this.newGroupName,
       description: this.newGroupDescription,
-      creator: user.username
+      creator: user.username,  // 생성자 정보
+      creatorName: `${user.firstName} ${user.lastName}`  // 생성자 이름 추가
     };
 
     this.http.post('http://localhost:4002/api/groups', newGroup).subscribe({
-      next: (response: any) => {
-        const newGroupId = response.id;  // 응답이 `response.id`로 그룹 ID 반환
-        this.router.navigate(['/group-detail', newGroupId]); // GroupDetailComponent로 이동
+      next: () => {
+        alert('Group created successfully');
+        this.loadGroups();
+        this.resetGroupForm();  // 입력 필드 초기화
+        this.showCreateGroupForm = false;  // 그룹 생성 후 모달 창 닫기
       },
       error: (error) => {
-        console.error('그룹 생성 중 오류:', error);
-        alert('그룹 생성 중 오류가 발생했습니다.');
+        console.error('Error creating group:', error);
+        alert(error.error ? error.error.error : 'An error occurred while creating the group.');
       }
     });
   }
@@ -61,7 +62,7 @@ export class ChatGroupComponent {
     if (confirm('Are you sure you want to delete this group?')) {
       const user = this.authService.getStoredUser(); // 사용자 정보 가져오기
       const headers = { 'user': JSON.stringify(user) }; // 사용자 정보를 헤더로 전달
-
+  
       this.http.delete(`http://localhost:4002/api/groups/${groupId}`, { headers }).subscribe(() => {
         alert('Group deleted successfully');
         this.loadGroups();
@@ -70,6 +71,7 @@ export class ChatGroupComponent {
       });
     }
   }
+  
 
   resetGroupForm() {
     this.newGroupName = '';

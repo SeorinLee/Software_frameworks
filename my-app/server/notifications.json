@@ -1,7 +1,12 @@
 [
   null,
   null,
-  null,
+  [
+    {
+      "message": "You have been invited to join group 1725892521297.",
+      "timestamp": "2024-09-09T15:43:09.488Z"
+    }
+  ],
   [
     {
       "message": "You have been invited to join group test3.",

@@ -15,12 +15,14 @@ import { FormsModule } from '@angular/forms'; // FormsModule 추가
 export class GroupDetailComponent implements OnInit {
   groupId: string = '';
   group: any;
-  groupAdmins: any[] = [];  // 그룹 관리자 리스트
-  groupMembers: any[] = [];  // 일반 유저 리스트
+  groupAdmins: any[] = [];
+  groupMembers: any[] = [];
   groupChannels: any[] = [];
   showMembers: boolean = true;
   showChannels: boolean = false;
-  newUserEmail: string = '';  // 초대할 유저 이메일
+  newUserEmail: string = '';
+  searchName: string = ''; // Input for user search
+  searchedUsers: any[] = []; // Array to store search results
 
   constructor(private route: ActivatedRoute, private http: HttpClient) {}
 
@@ -30,7 +32,6 @@ export class GroupDetailComponent implements OnInit {
     this.loadGroupDetails(this.groupId);
     this.loadGroupMembers(this.groupId);
   }
-  
 
   // 그룹 세부 정보 로드
   loadGroupDetails(groupId: string) {
@@ -63,6 +64,38 @@ export class GroupDetailComponent implements OnInit {
       });
   }
 
+  // 유저 검색 기능 (이름 또는 이메일)
+  searchUser() {
+    // 검색한 값이 이메일인지, 이름인지 확인
+    if (this.searchName.includes('@')) {
+      // 이메일로 검색
+      this.http.get<any[]>(`http://localhost:4002/api/users?email=${this.searchName}`)
+        .subscribe({
+          next: (data) => {
+            this.searchedUsers = data.filter(user => user.email.includes(this.searchName));
+          },
+          error: (error) => {
+            console.error('Error searching users by email:', error);
+          }
+        });
+    } else {
+      // 이름으로 검색
+      this.http.get<any[]>(`http://localhost:4002/api/users?name=${this.searchName}`)
+        .subscribe({
+          next: (data) => {
+            // 사용자의 이름에 검색한 부분이 포함된 유저들만 필터링
+            this.searchedUsers = data.filter(user =>
+              user.firstName.toLowerCase().includes(this.searchName.toLowerCase()) ||
+              user.lastName.toLowerCase().includes(this.searchName.toLowerCase())
+            );
+          },
+          error: (error) => {
+            console.error('Error searching users by name:', error);
+          }
+        });
+    }
+  }
+
   addGroupAdminToMembers() {
     if (this.group && this.group.creatorName) {
       const groupAdmin = {
@@ -79,29 +112,24 @@ export class GroupDetailComponent implements OnInit {
     }
   }
 
-  inviteUser() {
-    if (this.newUserEmail) {
-      const inviteData = { email: this.newUserEmail, groupId: this.groupId };
+  inviteUser(username: string) {
+    const inviteData = { username: username, groupId: this.groupId };
       
-      this.http.post(`http://localhost:4002/api/groups/${this.groupId}/invite`, inviteData)
-        .subscribe({
-          next: () => {
-            alert('User invited successfully.');
-            this.newUserEmail = '';  
-            this.loadGroupMembers(this.groupId);  // 업데이트된 멤버 목록 다시 로드
-          },
-          error: (error) => {
-            if (error.error && error.error.error === 'User is already in the group.') {
-              alert('This user is already in the group.');
-            } else {
-              console.error('Error inviting user:', error);
-              alert('Error inviting user. Please try again.');
-            }
+    this.http.post(`http://localhost:4002/api/groups/${this.groupId}/invite`, inviteData)
+      .subscribe({
+        next: () => {
+          alert('User invited successfully.');
+          this.loadGroupMembers(this.groupId);  // 업데이트된 멤버 목록 다시 로드
+        },
+        error: (error) => {
+          if (error.error && error.error.error === 'User is already in the group.') {
+            alert('This user is already in the group.');
+          } else {
+            console.error('Error inviting user:', error);
+            alert('Error inviting user. Please try again.');
           }
-        });
-    } else {
-      alert('Please enter a valid email.');
-    }
+        }
+      });
   }
 
   showMembersTab() {
