@@ -27,8 +27,6 @@
     <div class="create-channel-content">
       <h3>Create a New Channel</h3>
       <form (submit)="createChannel()">
-        <label for="channelId">Channel ID:</label>
-        <input type="text" id="channelId" [(ngModel)]="newChannelId" name="channelId" class="form__input" required>
         
         <label for="channelName">Channel Name:</label>
         <input type="text" id="channelName" [(ngModel)]="newChannelName" name="channelName" class="form__input" required>

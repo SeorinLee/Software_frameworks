@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms'; // FormsModule 추가
 
 @Component({
   selector: 'app-group-detail',
-  standalone: true,  // standalone 컴포넌트로 설정
+  standalone: true,
   templateUrl: './group-detail.component.html',
   styleUrls: ['./group-detail.component.css'],
   imports: [CommonModule, NavBarComponent, FormsModule]
@@ -26,31 +26,36 @@ export class GroupDetailComponent implements OnInit {
 
   ngOnInit() {
     this.groupId = this.route.snapshot.paramMap.get('id')!;
-    this.loadGroupDetails();
-    this.loadGroupMembers();
+    console.log("Group ID:", this.groupId);  // 디버그 용도로 콘솔에 groupId 출력
+    this.loadGroupDetails(this.groupId);
+    this.loadGroupMembers(this.groupId);
   }
+  
 
-  // 그룹 정보 로드
-  loadGroupDetails() {
-    this.http.get(`http://localhost:4002/api/groups/${this.groupId}`)
-      .subscribe({
-        next: (data) => {
-          this.group = data;
-          this.addGroupAdminToMembers();  // 그룹 생성자 추가
-        },
-        error: (error) => {
-          console.error('Error loading group details:', error);
+  // 그룹 세부 정보 로드
+  loadGroupDetails(groupId: string) {
+    this.http.get(`http://localhost:4002/api/groups/${groupId}`).subscribe({
+      next: (data) => {
+        this.group = data;
+        this.addGroupAdminToMembers();
+      },
+      error: (error) => {
+        if (error.status === 404) {
+          console.error('그룹을 찾을 수 없습니다.');
+          alert('해당 그룹을 찾을 수 없습니다.');
+        } else {
+          console.error('그룹 세부 정보를 로드하는 중 오류가 발생했습니다:', error);
         }
-      });
+      }
+    });
   }
 
   // 그룹 멤버 로드
-  loadGroupMembers() {
-    this.http.get<any[]>(`http://localhost:4002/api/groups/${this.groupId}/members`)
+  loadGroupMembers(groupId: string) {
+    this.http.get<any[]>(`http://localhost:4002/api/groups/${groupId}/members`)
       .subscribe({
         next: (data: any[]) => {
-          this.groupMembers = data.filter(member => member.status !== 'Group Admin'); // 일반 유저만 분리
-          this.addGroupAdminToMembers();  // 그룹 생성자 추가
+          this.groupMembers = data;
         },
         error: (error) => {
           console.error('Error loading group members:', error);
@@ -58,7 +63,6 @@ export class GroupDetailComponent implements OnInit {
       });
   }
 
-  // 그룹 생성자를 관리자 리스트에 추가
   addGroupAdminToMembers() {
     if (this.group && this.group.creatorName) {
       const groupAdmin = {
@@ -70,12 +74,11 @@ export class GroupDetailComponent implements OnInit {
 
       const existingAdmin = this.groupAdmins.find(admin => admin.firstName === groupAdmin.firstName && admin.lastName === groupAdmin.lastName);
       if (!existingAdmin) {
-        this.groupAdmins.unshift(groupAdmin);  // 관리자 리스트에 추가
+        this.groupAdmins.unshift(groupAdmin);
       }
     }
   }
 
-  // 사용자 초대 기능 구현
   inviteUser() {
     if (this.newUserEmail) {
       const inviteData = { email: this.newUserEmail, groupId: this.groupId };
@@ -84,12 +87,16 @@ export class GroupDetailComponent implements OnInit {
         .subscribe({
           next: () => {
             alert('User invited successfully.');
-            this.newUserEmail = '';  // 입력 필드 초기화
-            this.loadGroupMembers();  // 업데이트된 멤버 목록 다시 로드
+            this.newUserEmail = '';  
+            this.loadGroupMembers(this.groupId);  // 업데이트된 멤버 목록 다시 로드
           },
           error: (error) => {
-            console.error('Error inviting user:', error);
-            alert('Error inviting user. Please try again.');
+            if (error.error && error.error.error === 'User is already in the group.') {
+              alert('This user is already in the group.');
+            } else {
+              console.error('Error inviting user:', error);
+              alert('Error inviting user. Please try again.');
+            }
           }
         });
     } else {
@@ -97,20 +104,17 @@ export class GroupDetailComponent implements OnInit {
     }
   }
 
-  // 탭 전환: 멤버
   showMembersTab() {
     this.showMembers = true;
     this.showChannels = false;
   }
 
-  // 탭 전환: 채널
   showChannelsTab() {
     this.showMembers = false;
     this.showChannels = true;
     this.loadGroupChannels();
   }
 
-  // 그룹 채널 로드
   loadGroupChannels() {
     this.http.get<any[]>(`http://localhost:4002/api/groups/${this.groupId}/channels`)
       .subscribe({

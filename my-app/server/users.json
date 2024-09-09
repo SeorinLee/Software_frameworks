@@ -39,8 +39,110 @@
       {
         "groupId": "1",
         "status": "Pending"
+      },
+      {
+        "groupId": "test1",
+        "status": "Pending"
+      },
+      {
+        "groupId": "test2",
+        "status": "Pending"
+      },
+      {
+        "groupId": "test3",
+        "status": "Pending"
+      },
+      {
+        "groupId": "test4",
+        "status": "Pending"
+      },
+      {
+        "groupId": "test5",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1725891516712",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1725892017768",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1725892521297",
+        "status": "Pending"
       }
     ],
     "dob": "2024-09-05"
+  },
+  {
+    "id": "4",
+    "username": "u9",
+    "password": "9074",
+    "firstName": "user1",
+    "lastName": "user1",
+    "email": "user1@ex.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [
+      {
+        "groupId": "test4",
+        "status": "Pending"
+      },
+      {
+        "groupId": "test5",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1725892521297",
+        "status": "Pending"
+      }
+    ],
+    "dob": "2024-09-13"
+  },
+  {
+    "id": "5",
+    "username": "user3",
+    "password": "9074",
+    "firstName": "user3",
+    "lastName": "user3",
+    "email": "user3@ex.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [
+      {
+        "groupId": "test4",
+        "status": "Pending"
+      }
+    ],
+    "dob": "2024-09-14"
+  },
+  {
+    "id": "6",
+    "username": "u6",
+    "password": "9074",
+    "firstName": "u6",
+    "lastName": "u6",
+    "email": "u6@user.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [
+      {
+        "groupId": "test4",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1725892521297",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1725894015905",
+        "status": "Pending"
+      }
+    ],
+    "dob": "2024-09-20"
   }
 ]

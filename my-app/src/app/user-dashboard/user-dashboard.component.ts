@@ -25,14 +25,17 @@ export class UserDashboardComponent implements OnInit {
 // 사용자에게 할당된 그룹 목록을 불러오는 함수
 loadUserGroups() {
   const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
-  
+
   if (user && user.id) {
-    // 현재 사용자의 그룹 정보를 서버에서 가져옴
     this.http.get<any[]>(`http://localhost:4002/api/users/${user.id}/groups`).subscribe({
-      next: (data: any[]) => {
-        // 그룹 데이터 중에서 'Accepted' 상태인 그룹만 필터링
-        this.groups = data.filter(group => group.status === 'Accepted');
-        this.filterGroups();  // 필터링한 그룹을 대시보드에 표시
+      next: (data: any) => {
+        // data가 배열인지 확인
+        if (Array.isArray(data.groups)) {
+          this.groups = data.groups.filter((group: any) => group.status === 'Accepted');
+          this.filterGroups();  // 필터링한 그룹을 대시보드에 표시
+        } else {
+          console.error('Expected an array but got:', data.groups);
+        }
       },
       error: (error) => {
         if (error.status === 404) {
@@ -45,6 +48,7 @@ loadUserGroups() {
     });
   }
 }
+
 
 
 

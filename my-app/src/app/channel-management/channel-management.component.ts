@@ -16,7 +16,6 @@ export class ChannelManagementComponent {
   groups: any[] = [];
   selectedGroupId: string = '';
   channels: any[] = [];
-  newChannelId: string = '';
   newChannelName: string = '';
   newChannelDescription: string = '';
   showCreateChannelForm: boolean = false;  // Form visibility toggle
@@ -41,33 +40,32 @@ export class ChannelManagementComponent {
   }
 
   createChannel() {
-    if (!this.newChannelId || !this.newChannelName || !this.newChannelDescription) {
-      alert('All fields are required');
+    if (!this.newChannelName || !this.newChannelDescription) {
+      alert('모든 필드를 입력해주세요.');
       return;
     }
-
+  
     const newChannel = {
-      id: this.newChannelId,
+      id: Date.now().toString(),  // 타임스탬프를 이용하여 유니크한 ID 생성
       name: this.newChannelName,
       description: this.newChannelDescription,
-      creator: this.authService.getStoredUser().username // 생성자 정보 추가
+      creator: this.authService.getStoredUser().username
     };
-
+  
     this.http.post(`http://localhost:4002/api/groups/${this.selectedGroupId}/channels`, newChannel).subscribe({
       next: () => {
-        alert('Channel created successfully');
+        alert('채널이 성공적으로 생성되었습니다.');
         this.loadChannels(this.selectedGroupId);
-        this.newChannelId = '';
         this.newChannelName = '';
         this.newChannelDescription = '';
-        this.showCreateChannelForm = false;  // Hide the form after creation
+        this.showCreateChannelForm = false;  // 생성 후 폼 숨기기
       },
       error: (error) => {
-        console.error('Error creating channel:', error);
-        alert(error.error ? error.error.error : 'An error occurred while creating the channel.');
+        console.error('채널 생성 중 오류:', error);
+        alert(error.error ? error.error.error : '채널 생성 중 오류가 발생했습니다.');
       }
     });
-  }
+  }  
 
   deleteChannel(channelId: string) {
     if (confirm('Are you sure you want to delete this channel?')) {
@@ -82,5 +80,4 @@ export class ChannelManagementComponent {
       });
     }
   }
-  
 }

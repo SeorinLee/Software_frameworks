@@ -40,10 +40,10 @@ let notifications = loadFile(notificationsFilePath);
 let groups = loadFile(groupsFilePath);
 let channels = loadFile(channelsFilePath);
 
-// 사용자 알림 추가 함수
+// 사용자 알림 추가 함수 (유저 ID별로 알림 추가)
 function addNotification(userId, message) {
   if (!notifications[userId]) {
-    notifications[userId] = [];
+    notifications[userId] = [];  // 각 유저 ID에 대한 알림 배열
   }
   notifications[userId].push({ message, timestamp: new Date().toISOString() });
   saveFile(notificationsFilePath, notifications);
@@ -244,25 +244,27 @@ app.post('/api/accept-promotion/:id', (req, res) => {
 
 // 그룹 생성
 app.post('/api/groups', (req, res) => {
-  const { id, name, description, creator } = req.body;
+  const { name, description, creator } = req.body;
 
-  if (!id || !name || !description || !creator) {
-    return res.status(400).json({ error: 'All fields are required' });
+  if (!name || !description || !creator) {
+    return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
   }
 
-  if (groups.some(group => group.id === id)) {
-    return res.status(400).json({ error: 'Group ID already exists' });
-  }
-
+  const newGroupId = Date.now().toString(); // 타임스탬프를 ID로 생성
   const creatorUser = users.find(u => u.username === creator);
   const creatorName = creatorUser ? `${creatorUser.firstName} ${creatorUser.lastName}` : 'Unknown';
 
-  const newGroup = { id, name, description, creator, creatorName };
+  const newGroup = { id: newGroupId, name, description, creator, creatorName };
   groups.push(newGroup);
+
+  console.log('New Group:', newGroup);  // 디버깅용 콘솔 로그 추가
   saveFile(groupsFilePath, groups);
 
-  res.status(201).json(newGroup);
+  res.status(201).json({ group: newGroup });
 });
+
+
+
 
 // 그룹 삭제
 app.delete('/api/groups/:id', (req, res) => {
@@ -293,8 +295,10 @@ app.get('/api/groups', (req, res) => {
 });
 
 // 특정 그룹 조회
-app.get('/api/groups/:id', (req, res) => {
-  const group = groups.find(group => group.id === req.params.id);
+// 그룹 이름을 기반으로 그룹 검색
+app.get('/api/groups/name/:name', (req, res) => {
+  const groupName = req.params.name;
+  const group = groups.find(group => group.name === groupName);
 
   if (!group) {
     return res.status(404).json({ error: 'Group not found' });
@@ -302,6 +306,7 @@ app.get('/api/groups/:id', (req, res) => {
 
   res.json(group);
 });
+
 
 //사용자(ID 기반)가 속한 그룹 정보
 app.get('/api/users/:id/groups', (req, res) => {
@@ -325,22 +330,22 @@ app.get('/api/users/:id/groups', (req, res) => {
 // 채널 생성
 app.post('/api/groups/:groupId/channels', (req, res) => {
   const { groupId } = req.params;
-  const { id, name, description, creator } = req.body;
+  const { name, description, creator } = req.body;
 
-  if (!id || !name || !description || !creator) {
-    return res.status(400).json({ error: 'All fields are required' });
+  if (!name || !description || !creator) {
+    return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
   }
 
-  if (channels.some(channel => channel.id === id)) {
-    return res.status(400).json({ error: 'Channel ID already exists' });
-  }
+  // 타임스탬프를 이용한 고유 ID 생성
+  const newChannelId = Date.now().toString();
 
-  const newChannel = { id, name, description, groupId, creator };
+  const newChannel = { id: newChannelId, name, description, groupId, creator };
   channels.push(newChannel);
   saveFile(channelsFilePath, channels);
 
   res.status(201).json(newChannel);
 });
+
 
 // 그룹 삭제
 app.delete('/api/groups/:id', (req, res) => {
@@ -448,9 +453,19 @@ app.delete('/api/super-admin/delete/:id', (req, res) => {
 // 그룹 멤버 조회 API
 app.get('/api/groups/:groupId/members', (req, res) => {
   const { groupId } = req.params;
-  const members = users.filter(user => user.groups.includes(groupId));
-  res.json(members);
+
+  // 해당 그룹에 속한 사용자 필터링
+  const members = users.filter(user => user.groups.some(group => group.groupId === groupId && group.status === 'Accepted'));
+
+  // 멤버의 firstName과 lastName만 반환
+  const memberNames = members.map(member => ({
+    firstName: member.firstName,
+    lastName: member.lastName,
+  }));
+
+  res.json(memberNames);
 });
+
 
 // 그룹 초대 API
 app.post('/api/groups/:groupId/invite', (req, res) => {
@@ -461,15 +476,106 @@ app.post('/api/groups/:groupId/invite', (req, res) => {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  if (!user.groups.some(g => g.groupId === groupId)) {
+  const userGroup = user.groups.find(g => g.groupId === groupId);
+
+  if (!userGroup) {
+    // 유저가 그룹에 없는 경우, 초대 진행
     user.groups.push({ groupId, status: 'Pending' });
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
+    saveFile(usersFilePath, users);
     addNotification(user.id, `You have been invited to join group ${groupId}.`);
     res.status(200).json({ message: 'User invited successfully.' });
-  } else {
-    res.status(400).json({ error: 'User is already in the group.' });
+  } else if (userGroup.status === 'Pending') {
+    res.status(400).json({ error: 'User has already been invited to the group.' });
+  } else if (userGroup.status === 'Accepted') {
+    res.status(400).json({ error: 'User is already a member of the group.' });
   }
 });
+
+// 그룹 참여 수락 API
+app.post('/api/groups/:groupId/join', (req, res) => {
+  const groupId = req.params.groupId;
+  const { userId } = req.body;
+
+  const user = users.find(u => u.id === userId);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  const group = groups.find(g => g.id === groupId);
+  if (!group) {
+    return res.status(404).json({ error: 'Group not found' });
+  }
+
+  const userGroup = user.groups.find(g => g.groupId === groupId);
+  if (userGroup && userGroup.status === 'Pending') {
+    userGroup.status = 'Accepted';
+    saveFile(usersFilePath, users);
+    res.json({ success: true, message: `User ${user.username} has joined the group ${group.name}` });
+  } else {
+    res.status(400).json({ error: 'User has not been invited or is already a member.' });
+  }
+});
+
+
+
+// 그룹 참여 수락 API
+app.post('/api/groups/:groupId/join', (req, res) => {
+  const groupId = req.params.groupId;
+  const { userId } = req.body;
+
+  // 유저 정보 확인
+  const user = users.find(u => u.id === userId);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  // 그룹 정보 확인
+  const group = groups.find(g => g.id === groupId);
+  if (!group) {
+    return res.status(404).json({ error: 'Group not found' });
+  }
+
+  // 유저가 그룹에 속해 있는지 확인
+  const userGroup = user.groups.find(g => g.groupId === groupId);
+  console.log('User Group:', userGroup);  // 디버깅용 로그
+
+  if (!userGroup) {
+    // 유저가 해당 그룹에 초대받지 않은 경우
+    console.log(`User ${user.username} has not been invited to group ${group.name}`);
+    return res.status(400).json({ error: 'User has not been invited to this group.' });
+  }
+
+  if (userGroup.status === 'Accepted') {
+    // 유저가 이미 그룹의 정식 멤버인 경우
+    console.log(`User ${user.username} is already a member of group ${group.name}`);
+    return res.status(400).json({ error: 'User is already a member of the group.' });
+  }
+
+  if (userGroup.status === 'Pending') {
+    // Pending 상태를 Accepted로 변경
+    userGroup.status = 'Accepted';
+    console.log(`User ${user.username} has accepted the invitation to group ${group.name}`);
+    saveFile(usersFilePath, users);  // 유저 정보 저장
+    return res.json({ success: true, message: `User ${user.username} has joined the group ${group.name}` });
+  }
+
+  // 그 외의 경우 예외 처리
+  return res.status(400).json({ error: 'Invalid group status.' });
+});
+
+app.get('/api/groups/:groupId', (req, res) => {
+  const groupId = req.params.groupId;
+  const group = groups.find(g => g.id === groupId);
+
+  if (!group) {
+    console.error(`Group with ID ${groupId} not found`);  // 디버깅용 로그 추가
+    return res.status(404).json({ error: 'Group not found' });
+  }
+
+  res.json(group);
+});
+
+
 // 서버 실행
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
