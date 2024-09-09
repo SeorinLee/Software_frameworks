@@ -52,7 +52,8 @@ export class ProfileComponent {
   onDeleteAccount() {
     if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       if (isPlatformBrowser(this.platformId)) {
-        this.http.delete(`http://localhost:4002/api/users/${this.user.id}`).subscribe({
+        console.log(`Deleting user with ID: ${this.user.id}`);  // 추가: ID 확인
+        this.http.delete(`http://localhost:4002/api/users/delete/${this.user.id}`).subscribe({
           next: () => {
             alert('Account deleted successfully!');
             sessionStorage.clear();
@@ -60,12 +61,14 @@ export class ProfileComponent {
           },
           error: (error: HttpErrorResponse) => {
             console.error('Failed to delete account:', error);
-            this.handleError(error);
+            alert('Failed to delete account. Please try again later.');
           }
         });
       }
     }
   }
+  
+  
 
   onBack() {
     const userRole = this.user.username.startsWith('super')

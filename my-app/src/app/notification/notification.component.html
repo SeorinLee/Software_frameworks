@@ -1,3 +1,6 @@
+<div class="notification-container">
+  <app-nav-bar></app-nav-bar>
+  <div class="notification-content">
 <div *ngIf="selectedNotification; else notificationList">
   <h3>{{ selectedNotification.message }}</h3>
   <button (click)="onAccept()">Accept</button>
@@ -11,3 +14,5 @@
     </li>
   </ul>
 </ng-template>
+  </div>
+</div>

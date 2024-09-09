@@ -1,0 +1,7 @@
+.notification-container{
+  display: flex;
+}
+.notification-content{
+  margin-left: 250px; /* NavBar와의 간격 */
+  padding: 20px;
+}

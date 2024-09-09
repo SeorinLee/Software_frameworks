@@ -2,13 +2,14 @@ import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';  // FormsModule 추가
+import { NavBarComponent } from '../nav-bar/nav-bar.component';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,  // standalone 컴포넌트로 설정
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.css'],
-  imports: [CommonModule, FormsModule]  // CommonModule과 FormsModule 추가
+  imports: [CommonModule, FormsModule, NavBarComponent]  // CommonModule과 FormsModule 추가
 })
 export class UserManagementComponent {
   users: any[] = [];

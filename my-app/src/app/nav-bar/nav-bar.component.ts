@@ -38,17 +38,23 @@ export class NavBarComponent implements OnInit {  // OnInit 인터페이스 구�
     const user = JSON.parse(sessionStorage.getItem('user') || '{}');
     if (user && user.id) {
       if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-        this.authService.deleteAccount(user.id).subscribe(() => {
-          alert('Account deleted successfully!');
-          this.authService.logout();
-          this.router.navigate(['/login']);
+        this.authService.deleteAccount(user.id).subscribe({
+          next: () => {
+            alert('Account deleted successfully!');
+            this.authService.logout();
+            this.router.navigate(['/login']);
+          },
+          error: (err) => {
+            console.error('Failed to delete account:', err);
+            alert('Failed to delete account. Please try again later.');
+          }
         });
       }
     } else {
       alert('No user found. Please log in again.');
       this.router.navigate(['/login']);
     }
-  }
+  }  
 
   navigateToProfile() {
     const user = JSON.parse(sessionStorage.getItem('user') || '{}');

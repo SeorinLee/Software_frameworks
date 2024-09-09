@@ -1,6 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
@@ -36,10 +37,6 @@ export class AuthService {
     return this.http.put(`${this.apiUrl}/users/${user.id}`, user);
   }
 
-  // 계정 삭제
-  deleteAccount(userId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/super-admin/delete/${userId}`);
-  }
 
   // 사용자 인증 여부 확인
   isAuthenticated(): boolean {
@@ -68,4 +65,23 @@ export class AuthService {
       sessionStorage.removeItem('user');
     }
   }
+
+  deleteAccount(userId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/users/delete/${userId}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // 공통 오류 처리
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'An unknown error occurred!';
+    if (error.error instanceof ErrorEvent) {
+      errorMessage = `Client-side error: ${error.error.message}`;
+    } else {
+      errorMessage = `Server-side error: ${error.status} - ${error.message}`;
+    }
+    console.error(errorMessage);
+    return throwError(() => new Error(errorMessage));  // throwError 사용
+  }
+
 }
