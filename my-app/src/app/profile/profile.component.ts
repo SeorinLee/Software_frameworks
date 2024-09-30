@@ -4,6 +4,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../auth.service'; 
 
 @Component({
   selector: 'app-profile',
@@ -18,15 +19,16 @@ export class ProfileComponent {
   constructor(
     private http: HttpClient,
     private router: Router,
+    private authService: AuthService,  // AuthService 주입
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     if (isPlatformBrowser(this.platformId)) {
-      const storedUser = sessionStorage.getItem('user');
+      const storedUser = this.authService.getStoredUser();  // AuthService의 메서드를 사용
       if (!storedUser) {
-        this.router.navigate(['/login']);
+        this.router.navigate(['/login']);  // 인증되지 않았으면 로그인 페이지로 이동
       } else {
-        this.user = JSON.parse(storedUser);
-        console.log(`Loaded user with ID: ${this.user.id}`);
+        this.user = storedUser;
+        console.log(`Loaded user with ID: ${this.user.id}, Username: ${this.user.username}`);
       }
     }
   }
@@ -68,16 +70,17 @@ export class ProfileComponent {
     }
   }
   
-  
-
+  // Back 버튼 클릭 시 실행되는 메서드
   onBack() {
-    const userRole = this.user.username.startsWith('super')
-      ? 'super-admin'
-      : this.user.username.startsWith('group')
-      ? 'group-admin'
-      : 'user-dashboard';
+    const role = this.authService.getUserRole();  // 사용자 역할 정보를 AuthService에서 가져옴
 
-    this.router.navigate([`/${userRole}`]);
+    if (role === 'Super Admin') {
+      this.router.navigate(['/super-admin']);  // super-admin 페이지로 이동
+    } else if (role === 'Group Admin') {
+      this.router.navigate(['/group-admin']);  // group-admin 페이지로 이동
+    } else {
+      this.router.navigate(['/user-dashboard']);  // 기본적으로 일반 유저는 user-dashboard로 이동
+    }
   }
 
   private handleError(error: HttpErrorResponse) {

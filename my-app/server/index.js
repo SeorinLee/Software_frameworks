@@ -468,52 +468,37 @@ app.get('/api/groups/:groupId/members', (req, res) => {
 
 
 // 그룹 초대 API
+// 그룹 초대 API
 app.post('/api/groups/:groupId/invite', (req, res) => {
-  const { email, groupId } = req.body;
+  const { email } = req.body;
+  const groupId = req.params.groupId;
+
+  // 그룹 및 사용자 확인
+  const group = groups.find(g => g.id === groupId);
   const user = users.find(u => u.email === email);
 
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
-  }
-
-  const userGroup = user.groups.find(g => g.groupId === groupId);
-
-  if (!userGroup) {
-    // 유저가 그룹에 없는 경우, 초대 진행
-    user.groups.push({ groupId, status: 'Pending' });
-    saveFile(usersFilePath, users);
-    addNotification(user.id, `You have been invited to join group ${groupId}.`);
-    res.status(200).json({ message: 'User invited successfully.' });
-  } else if (userGroup.status === 'Pending') {
-    res.status(400).json({ error: 'User has already been invited to the group.' });
-  } else if (userGroup.status === 'Accepted') {
-    res.status(400).json({ error: 'User is already a member of the group.' });
-  }
-});
-
-// 그룹 참여 수락 API
-app.post('/api/groups/:groupId/join', (req, res) => {
-  const groupId = req.params.groupId;
-  const { userId } = req.body;
-
-  const user = users.find(u => u.id === userId);
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
-  }
-
-  const group = groups.find(g => g.id === groupId);
   if (!group) {
     return res.status(404).json({ error: 'Group not found' });
   }
 
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  // 이미 그룹에 속해 있는지 확인
   const userGroup = user.groups.find(g => g.groupId === groupId);
   if (userGroup && userGroup.status === 'Pending') {
-    userGroup.status = 'Accepted';
-    saveFile(usersFilePath, users);
-    res.json({ success: true, message: `User ${user.username} has joined the group ${group.name}` });
-  } else {
-    res.status(400).json({ error: 'User has not been invited or is already a member.' });
+    addNotification(user.id, `You have already been invited to join group ${group.name}. Please accept the invitation.`);
+    return res.status(200).json({ message: 'Reminder sent to user.' });
   }
+
+  if (!userGroup) {
+    user.groups.push({ groupId, status: 'Pending' });
+    saveFile(usersFilePath, users); // 파일 저장
+  }
+
+  addNotification(user.id, `You have been invited to join group ${group.name}.`);
+  res.status(200).json({ message: 'User invited successfully.' });
 });
 
 
@@ -562,6 +547,8 @@ app.post('/api/groups/:groupId/join', (req, res) => {
   // 그 외의 경우 예외 처리
   return res.status(400).json({ error: 'Invalid group status.' });
 });
+
+
 
 app.get('/api/groups/:groupId', (req, res) => {
   const groupId = req.params.groupId;

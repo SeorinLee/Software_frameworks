@@ -112,25 +112,23 @@ export class GroupDetailComponent implements OnInit {
     }
   }
 
-  inviteUser(username: string) {
-    const inviteData = { username: username, groupId: this.groupId };
-      
+  inviteUser(userEmail: string) {
+    const inviteData = { email: userEmail, groupId: this.groupId };
+    
     this.http.post(`http://localhost:4002/api/groups/${this.groupId}/invite`, inviteData)
       .subscribe({
         next: () => {
           alert('User invited successfully.');
-          this.loadGroupMembers(this.groupId);  // 업데이트된 멤버 목록 다시 로드
+          this.loadGroupMembers(this.groupId); // 업데이트된 멤버 목록 다시 로드
         },
         error: (error) => {
-          if (error.error && error.error.error === 'User is already in the group.') {
-            alert('This user is already in the group.');
-          } else {
-            console.error('Error inviting user:', error);
-            alert('Error inviting user. Please try again.');
-          }
+          console.error('Error inviting user:', error); // 에러 로그를 확인하여 세부 원인 파악
+          alert('Error inviting user. Please try again.');
         }
       });
   }
+  
+  
 
   showMembersTab() {
     this.showMembers = true;
