@@ -23,9 +23,16 @@ export class ChatGroupComponent {
   }
 
   loadGroups() {
-    const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };
+    const user = this.authService.getStoredUser(); // 현재 로그인한 사용자 정보
+    const headers = { 'user': JSON.stringify(user) };
+
     this.http.get<any[]>('http://localhost:4002/api/groups', { headers }).subscribe(data => {
-      this.groups = data;
+      // Group Admin은 본인이 생성한 그룹만 표시
+      if (user.roles.includes('Group Admin')) {
+        this.groups = data.filter(group => group.creator === user.username);  // 본인이 생성한 그룹만 필터링
+      } else {
+        this.groups = data;  // Super Admin 등은 모든 그룹 표시
+      }
     });
   }
 

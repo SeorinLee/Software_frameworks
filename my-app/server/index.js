@@ -289,9 +289,13 @@ app.delete('/api/groups/:id', (req, res) => {
 
 // 그룹 조회
 app.get('/api/groups', (req, res) => {
-  const user = JSON.parse(req.headers.user);
-  const userGroups = user.roles.includes('Super Admin') ? groups : groups.filter(group => group.creator === user.username);
-  res.json(userGroups);
+  try {
+    // 모든 사용자가 모든 그룹을 볼 수 있도록 수정
+    return res.json(groups);
+  } catch (error) {
+    console.error('Error fetching groups:', error);
+    res.status(500).json({ error: 'Failed to fetch groups.' });
+  }
 });
 
 // 특정 그룹 조회
@@ -308,7 +312,6 @@ app.get('/api/groups/name/:name', (req, res) => {
 });
 
 
-//사용자(ID 기반)가 속한 그룹 정보
 app.get('/api/users/:id/groups', (req, res) => {
   const userId = req.params.id;
   const user = users.find(u => u.id === userId);
@@ -319,12 +322,15 @@ app.get('/api/users/:id/groups', (req, res) => {
 
   const userGroups = user.groups || [];
 
-  if (userGroups.length === 0) {
-    return res.status(200).json({ groups: [] });  // 그룹이 없는 경우 빈 배열 반환
-  }
+  // 그룹 정보 찾기: users.json의 그룹 ID를 기반으로 groups.json에서 상세 정보 매핑
+  const joinedGroups = userGroups.map(userGroup => {
+    const group = groups.find(g => g.id === userGroup.groupId);
+    return group ? { ...group, status: userGroup.status } : null;
+  }).filter(g => g !== null);  // null 값은 제외
 
-  res.json({ groups: userGroups });
+  res.json(joinedGroups);
 });
+
 
 
 // 채널 생성
@@ -467,7 +473,7 @@ app.get('/api/groups/:groupId/members', (req, res) => {
 });
 
 
-// 그룹 초대 API
+
 // 그룹 초대 API
 app.post('/api/groups/:groupId/invite', (req, res) => {
   const { email } = req.body;
@@ -503,7 +509,7 @@ app.post('/api/groups/:groupId/invite', (req, res) => {
 
 
 
-// 그룹 참여 수락 API
+// 그룹 참여 수락 API (Super Admin은 자동 가입)
 app.post('/api/groups/:groupId/join', (req, res) => {
   const groupId = req.params.groupId;
   const { userId } = req.body;
@@ -520,47 +526,30 @@ app.post('/api/groups/:groupId/join', (req, res) => {
     return res.status(404).json({ error: 'Group not found' });
   }
 
-  // 유저가 그룹에 속해 있는지 확인
+  // Super Admin은 바로 가입
+  if (user.roles.includes('Super Admin')) {
+    const existingGroup = user.groups.find(g => g.groupId === groupId);
+    if (!existingGroup) {
+      user.groups.push({ groupId, status: 'Accepted' });
+      saveFile(usersFilePath, users);
+      return res.json({ success: true, message: `Super Admin ${user.username} has joined the group ${group.name}` });
+    }
+    return res.status(400).json({ error: 'User already in the group' });
+  }
+
+  // Group Admin 및 일반 User는 가입 요청을 보냄
   const userGroup = user.groups.find(g => g.groupId === groupId);
-  console.log('User Group:', userGroup);  // 디버깅용 로그
-
   if (!userGroup) {
-    // 유저가 해당 그룹에 초대받지 않은 경우
-    console.log(`User ${user.username} has not been invited to group ${group.name}`);
-    return res.status(400).json({ error: 'User has not been invited to this group.' });
+    user.groups.push({ groupId, status: 'Pending' });
+    saveFile(usersFilePath, users);
+    addNotification(group.creatorId, `${user.username} has requested to join the group ${group.name}.`);
+    return res.json({ success: true, message: `Request to join group ${group.name} sent to the group admin.` });
   }
 
-  if (userGroup.status === 'Accepted') {
-    // 유저가 이미 그룹의 정식 멤버인 경우
-    console.log(`User ${user.username} is already a member of group ${group.name}`);
-    return res.status(400).json({ error: 'User is already a member of the group.' });
-  }
-
-  if (userGroup.status === 'Pending') {
-    // Pending 상태를 Accepted로 변경
-    userGroup.status = 'Accepted';
-    console.log(`User ${user.username} has accepted the invitation to group ${group.name}`);
-    saveFile(usersFilePath, users);  // 유저 정보 저장
-    return res.json({ success: true, message: `User ${user.username} has joined the group ${group.name}` });
-  }
-
-  // 그 외의 경우 예외 처리
-  return res.status(400).json({ error: 'Invalid group status.' });
+  return res.status(400).json({ error: 'User already requested to join this group' });
 });
 
 
-
-app.get('/api/groups/:groupId', (req, res) => {
-  const groupId = req.params.groupId;
-  const group = groups.find(g => g.id === groupId);
-
-  if (!group) {
-    console.error(`Group with ID ${groupId} not found`);  // 디버깅용 로그 추가
-    return res.status(404).json({ error: 'Group not found' });
-  }
-
-  res.json(group);
-});
 
 // 사용자 이메일 검색 API
 app.get('/api/users/search', (req, res) => {

@@ -1,5 +1,5 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
@@ -28,6 +28,22 @@ export class AuthService {
         catchError(this.handleError)
       );
   }
+
+// 그룹 정보 불러오기
+getGroups(): Observable<any> {
+  const user = this.getStoredUser();
+  if (user) {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'user': JSON.stringify(user) // 헤더에 사용자 정보 추가
+    });
+    return this.http.get<any[]>(`${this.apiUrl}/groups`, { headers })
+      .pipe(catchError(this.handleError));
+  } else {
+    return throwError(() => new Error('User not authenticated'));
+  }
+}
+
 
   // 프로필 조회
   getProfile(): Observable<any> {

@@ -1,0 +1,14 @@
+<div class="group-list">
+  <h2>그룹 목록</h2>
+  <ul>
+    <li *ngFor="let group of groups">
+      <div>
+        <strong>{{ group.name }}</strong>
+        <p>{{ group.description }}</p> <!-- 그룹 설명 추가 -->
+        <span> - {{ group.creatorName }}</span>
+        <!-- 그룹 클릭 시 가입 요청을 처리 -->
+        <button *ngIf="true" (click)="joinGroup(group.id, group.creatorRole)">Join</button>
+      </div>
+    </li>
+  </ul>
+</div>

@@ -1,39 +1,42 @@
-import { Component, OnInit } from '@angular/core'; // OnInit을 추가로 임포트
+import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth.service';
-import { Router } from '@angular/router';  // Router 추가
-import { CommonModule } from '@angular/common';  // CommonModule 추가
-import { FormsModule } from '@angular/forms'; // FormsModule 추가
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router'; // RouterModule 추가
 import { NavBarComponent } from '../nav-bar/nav-bar.component';
+import { TopNavComponent } from '../top-nav/top-nav.component';
+import { GroupListComponent } from '../group-list/group-list.component';  // GroupListComponent 추가
 
 @Component({
   selector: 'app-super-admin',
   standalone: true,
   templateUrl: './super-admin.component.html',
   styleUrls: ['./super-admin.component.css'],
-  imports: [CommonModule, FormsModule, NavBarComponent]  // CommonModule 추가
+  imports: [CommonModule, FormsModule, RouterModule, NavBarComponent, TopNavComponent, GroupListComponent]  // RouterModule 추가
 })
-export class SuperAdminComponent implements OnInit {  // OnInit 인터페이스 추가
-  title = 'Super Admin Dashboard';
+export class SuperAdminComponent implements OnInit {
+  title = '슈퍼 관리자 대시보드';
   groups: any[] = [];
-  searchTerm: string = '';  // 검색어 추가
-  filteredGroups: any[] = [];  // 필터링된 그룹 저장
+  searchTerm: string = '';
+  filteredGroups: any[] = [];
 
   constructor(
     private http: HttpClient,
     private authService: AuthService,
-    private router: Router // Router 추가
+    private router: Router
   ) {}
 
   ngOnInit() {
-    this.loadGroups();  // OnInit 인터페이스를 사용해 컴포넌트 초기화 시 로직 실행
+    this.loadGroups();
   }
 
   loadGroups() {
-    const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };
+    const headers = { user: JSON.stringify(this.authService.getStoredUser()) };
     this.http.get<any[]>('http://localhost:4002/api/groups', { headers }).subscribe(data => {
       this.groups = data;
-      this.filterGroups();  // 그룹 로드 후 필터링
+      this.filterGroups();
     });
   }
 
@@ -43,15 +46,14 @@ export class SuperAdminComponent implements OnInit {  // OnInit 인터페이스 
     } else {
       const lowerSearchTerm = this.searchTerm.toLowerCase();
       this.filteredGroups = this.groups.filter(group =>
-        group.name.toLowerCase().includes(lowerSearchTerm) || 
+        group.name.toLowerCase().includes(lowerSearchTerm) ||
         group.description.toLowerCase().includes(lowerSearchTerm) ||
-        (group.creatorName && group.creatorName.toLowerCase().includes(lowerSearchTerm)) // creatorName이 존재하는지 확인
+        (group.creatorName && group.creatorName.toLowerCase().includes(lowerSearchTerm))
       );
     }
   }
 
-  // 그룹 클릭 시 그룹 세부 페이지로 이동하는 함수
   navigateToGroup(groupId: string) {
-    this.router.navigate([`/groups/${groupId}`]);  // 그룹 상세 페이지로 이동
+    this.router.navigate([`/groups/${groupId}`]);
   }
 }

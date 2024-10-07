@@ -1,27 +1,7 @@
-<!-- Super Admin Dashboard -->
 <div class="dashboard-container">
   <app-nav-bar></app-nav-bar>
   <div class="dashboard-content">
-    <h1>{{ title }}</h1>
-    
-    <!-- 검색 입력 필드 추가 -->
-    <div class="search-container">
-      <input type="text" placeholder="Search for groups..." [(ngModel)]="searchTerm" (input)="filterGroups()" class="search-input" />
-    </div>
-
-    <!-- Super Admin이 모든 그룹을 표시 -->
-    <div *ngIf="filteredGroups.length > 0">
-      <h3>All Groups</h3>
-      <div class="groups-container">
-        <div *ngFor="let group of filteredGroups" class="group-container" (click)="navigateToGroup(group.id)" style="cursor: pointer;">
-          <strong>{{ group.name }}</strong>
-          <p>{{ group.description }}</p>
-          <p><strong>Created by:</strong> {{ group.creatorName }}</p>
-        </div>
-      </div>
-    </div>
-    <div *ngIf="filteredGroups.length === 0">
-      <p>No groups found.</p>
-    </div>
+    <app-top-nav></app-top-nav> 
+    <router-outlet></router-outlet> <!-- GroupListComponent 또는 자식 라우트가 여기에 로드됨 -->
   </div>
 </div>

@@ -1,0 +1,24 @@
+.top-nav {
+  background-color: #333;
+  color: white;
+  padding: 10px;
+}
+
+.top-nav ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.top-nav ul li {
+  display: inline;
+  margin-right: 15px;
+}
+
+.top-nav ul li a {
+  color: white;
+  text-decoration: none;
+}
+
+.top-nav ul li a:hover {
+  text-decoration: underline;
+}

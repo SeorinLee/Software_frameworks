@@ -1,1 +1,13 @@
-<p>top-nav works!</p>
+<nav class="top-nav">
+  <ul>
+    <!-- All Groups 링크 -->
+    <li><a [routerLink]="[dashboardRoute]">All Groups</a></li>
+
+    <!-- My Joined Groups 링크 -->
+    <li *ngIf="isUser() || isGroupAdmin() || isSuperAdmin()">
+      <a [routerLink]="['/super-admin/joined-groups']" *ngIf="isSuperAdmin()">My Joined Groups</a>
+      <a [routerLink]="['/group-admin/joined-groups']" *ngIf="isGroupAdmin()">My Joined Groups</a>
+      <a [routerLink]="['/user-dashboard/joined-groups']" *ngIf="isUser()">My Joined Groups</a>
+    </li>
+  </ul>
+</nav>

@@ -1,0 +1,9 @@
+<div *ngIf="joinedGroups.length > 0">
+  <div *ngFor="let group of joinedGroups">
+    <h3>{{ group.name }} ({{ group.status }})</h3>
+    <p>{{ group.description }}</p>
+  </div>
+</div>
+<div *ngIf="joinedGroups.length === 0">
+  <p>No groups joined yet.</p>
+</div>
