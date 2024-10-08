@@ -1,44 +1,9 @@
 [
   {
-    "id": "1727964342381",
-    "name": "super 1",
-    "description": "super 1",
-    "creator": "s1015",
-    "creatorName": "Rin Lee"
-  },
-  {
-    "id": "1727964439191",
-    "name": "group1",
-    "description": "group1",
-    "creator": "g123",
-    "creatorName": "group admin1 group admin1"
-  },
-  {
-    "id": "1727966279290",
-    "name": "g test1",
-    "description": "g test1",
-    "creator": "g123",
-    "creatorName": "group admin1 group admin1"
-  },
-  {
-    "id": "1728273155349",
-    "name": "test3",
-    "description": "test",
-    "creator": "g123",
-    "creatorName": "group admin1 group admin1"
-  },
-  {
-    "id": "1728275045120",
-    "name": "test4",
-    "description": "test4",
-    "creator": "g123",
-    "creatorName": "group admin1 group admin1"
-  },
-  {
-    "id": "1728275461063",
-    "name": "test5",
-    "description": "5",
-    "creator": "g123",
-    "creatorName": "group admin1 group admin1"
+    "id": "1728307070281",
+    "name": "super test1",
+    "description": "1",
+    "creator": "s222",
+    "creatorName": "super2 super2"
   }
 ]

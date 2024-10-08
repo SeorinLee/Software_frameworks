@@ -59,17 +59,18 @@ app.get('/api/users', (req, res) => {
   res.json(users);
 });
 
-// 특정 사용자 알림 조회
-app.get('/api/notifications/:id', (req, res) => {
-  const userId = req.params.id;
+// 사용자 알림 조회 API
+app.get('/api/notifications/:userId', (req, res) => {
+  const { userId } = req.params;
   const userNotifications = notifications[userId] || [];
-
+  
   if (userNotifications.length > 0) {
     res.json(userNotifications);
   } else {
     res.status(404).json({ message: 'No notifications found' });
   }
 });
+
 
 // 사용자 인증 (로그인)
 app.post('/api/auth', (req, res) => {
@@ -333,6 +334,7 @@ app.get('/api/users/:id/groups', (req, res) => {
 
 
 
+
 // 채널 생성
 app.post('/api/groups/:groupId/channels', (req, res) => {
   const { groupId } = req.params;
@@ -509,7 +511,8 @@ app.post('/api/groups/:groupId/invite', (req, res) => {
 
 
 
-// 그룹 참여 수락 API (Super Admin은 자동 가입)
+// 그룹 참여 수락 API (Super Admin은 자동 가입, 나머지는 승낙 대기)
+// 그룹 참여 수락 API (모든 사용자 즉시 가입)
 app.post('/api/groups/:groupId/join', (req, res) => {
   const groupId = req.params.groupId;
   const { userId } = req.body;
@@ -526,30 +529,48 @@ app.post('/api/groups/:groupId/join', (req, res) => {
     return res.status(404).json({ error: 'Group not found' });
   }
 
-  // Super Admin은 바로 가입
-  if (user.roles.includes('Super Admin')) {
-    const existingGroup = user.groups.find(g => g.groupId === groupId);
-    if (!existingGroup) {
-      user.groups.push({ groupId, status: 'Accepted' });
-      saveFile(usersFilePath, users);
-      return res.json({ success: true, message: `Super Admin ${user.username} has joined the group ${group.name}` });
-    }
-    return res.status(400).json({ error: 'User already in the group' });
+  // 이미 그룹에 속해 있는지 확인
+  const existingGroup = user.groups.find(g => g.groupId === groupId);
+  if (!existingGroup) {
+    // 새로운 그룹 추가, 상태는 'Accepted'로 설정
+    user.groups.push({ groupId, status: 'Accepted' });
+    saveFile(usersFilePath, users); // 파일에 저장
+
+    // 터미널에 로그 출력
+    console.log(`${user.username} has joined the group ${group.name} (Accepted)`);
+
+    return res.json({ success: true, message: `${user.username} has joined the group ${group.name}` });
   }
 
-  // Group Admin 및 일반 User는 가입 요청을 보냄
-  const userGroup = user.groups.find(g => g.groupId === groupId);
-  if (!userGroup) {
-    user.groups.push({ groupId, status: 'Pending' });
-    saveFile(usersFilePath, users);
-    addNotification(group.creatorId, `${user.username} has requested to join the group ${group.name}.`);
-    return res.json({ success: true, message: `Request to join group ${group.name} sent to the group admin.` });
-  }
-
-  return res.status(400).json({ error: 'User already requested to join this group' });
+  return res.status(400).json({ error: 'User is already in the group.' });
 });
 
 
+
+app.post('/api/groups/:groupId/approve/:userId', (req, res) => {
+  const { groupId, userId } = req.params;
+
+  // 그룹 및 사용자 확인
+  const group = groups.find(g => g.id === groupId);
+  const user = users.find(u => u.id === userId);
+
+  if (!group || !user) {
+    return res.status(404).json({ error: 'Group or user not found' });
+  }
+
+  // 유저의 그룹 상태 확인 및 업데이트
+  const userGroup = user.groups.find(g => g.groupId === groupId && g.status === 'Pending');
+  if (userGroup) {
+    userGroup.status = 'Accepted';  // 상태를 Accepted로 변경
+    saveFile(usersFilePath, users);  // 업데이트된 사용자 정보 저장
+
+    // 가입 승인 알림 전송
+    addNotification(user.id, `Your request to join the group ${group.name} has been approved.`);
+    return res.json({ success: true, message: `User ${user.username} has been approved to join group ${group.name}` });
+  } else {
+    return res.status(400).json({ error: 'No pending request found for this user.' });
+  }
+});
 
 // 사용자 이메일 검색 API
 app.get('/api/users/search', (req, res) => {

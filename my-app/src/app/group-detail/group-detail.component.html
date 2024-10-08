@@ -1,6 +1,5 @@
 <app-nav-bar></app-nav-bar>
 
-
 <!-- 상단 네비게이션 바 -->
 <div class="group-navigation">
   <ul>
@@ -9,45 +8,15 @@
   </ul>
 </div>
 
+
 <!-- 그룹 멤버 리스트 -->
 <div *ngIf="showMembers" class="group-detail-container">
   <h2>Group Members</h2>
-
-  <!-- 그룹 관리자 -->
-  <h3>Group Admin</h3>
-  <ul>
-    <li *ngFor="let admin of groupAdmins">
-      <strong>{{ admin.firstName }} {{ admin.lastName }}</strong> - {{ admin.email || admin.role }}
-    </li>
-  </ul>
-
-  <!-- 일반 유저 리스트 -->
-  <h3>Users</h3>
   <ul>
     <li *ngFor="let member of groupMembers">
-      <strong>{{ member.firstName }} {{ member.lastName }}</strong> - {{ member.email }} 
-      <span *ngIf="member.status === 'Pending'">(Pending)</span>
-      <span *ngIf="member.status === 'Accepted'">(Accepted)</span>
+      <strong>{{ member.firstName }} {{ member.lastName }}</strong> - {{ member.email }}
     </li>
   </ul>
-
-  <!-- 유저 이름 검색 및 초대 -->
-  <div class="invite-user-container">
-    <h3>Search & Invite User by Name or Email</h3>
-    <input type="text" [(ngModel)]="searchName" placeholder="Enter user's name or email to search" />
-    <button (click)="searchUser()">🔍 Search</button>
-  </div>
-
-  <!-- 검색된 사용자 리스트 -->
-  <div *ngIf="searchedUsers.length > 0">
-    <h3>Search Results</h3>
-    <ul>
-      <li *ngFor="let user of searchedUsers">
-        <strong>{{ user.firstName }} {{ user.lastName }}</strong> - {{ user.email }}
-        <button (click)="inviteUser(user.username)">➕ Invite</button>
-      </li>
-    </ul>
-  </div>
 </div>
 
 <!-- 그룹 채널 리스트 -->
@@ -56,11 +25,4 @@
   <ul>
     <li *ngFor="let channel of groupChannels">{{ channel.name }}</li>
   </ul>
-</div>
-
-<!-- 그룹 기본 정보 -->
-<div class="group-detail-container">
-  <h1>{{ group?.name }}</h1>
-  <p><strong>Description:</strong> {{ group?.description }}</p>
-  <p><strong>Created by:</strong> {{ group?.creatorName }}</p>
 </div>

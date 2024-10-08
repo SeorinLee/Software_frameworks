@@ -5,6 +5,10 @@
     {
       "message": "You have been invited to join group 1725892521297.",
       "timestamp": "2024-09-09T15:43:09.488Z"
+    },
+    {
+      "message": "u1 has requested to join the group group test1.",
+      "timestamp": "2024-10-07T06:25:46.923Z"
     }
   ],
   [
@@ -31,42 +35,17 @@
     {
       "message": "You have been invited to join group 1725892521297.",
       "timestamp": "2024-09-09T14:35:42.480Z"
+    },
+    {
+      "message": "u1 has requested to join the group super test1.",
+      "timestamp": "2024-10-07T06:24:52.473Z"
+    },
+    {
+      "message": "u1 has requested to join the group super test2.",
+      "timestamp": "2024-10-07T06:35:01.153Z"
     }
   ],
-  [
-    {
-      "message": "Your role has been changed to Group Admin. Please accept the promotion in your notifications.",
-      "timestamp": "2024-09-09T10:08:27.820Z"
-    },
-    {
-      "message": "Your role has been changed to User. Please accept the promotion in your notifications.",
-      "timestamp": "2024-09-09T10:08:38.137Z"
-    },
-    {
-      "message": "Your role has been changed to User. Please accept the promotion in your notifications.",
-      "timestamp": "2024-09-09T11:28:48.060Z"
-    },
-    {
-      "message": "Your role has been changed to User. Please accept the promotion in your notifications.",
-      "timestamp": "2024-09-09T11:41:30.327Z"
-    },
-    {
-      "message": "Your role has been changed to User. Please accept the promotion in your notifications.",
-      "timestamp": "2024-09-09T11:42:59.074Z"
-    },
-    {
-      "message": "You have been invited to join group test4.",
-      "timestamp": "2024-09-09T14:42:07.399Z"
-    },
-    {
-      "message": "You have been invited to join group test5.",
-      "timestamp": "2024-09-09T15:33:57.962Z"
-    },
-    {
-      "message": "You have been invited to join group 1725892521297.",
-      "timestamp": "2024-09-09T15:34:05.398Z"
-    }
-  ],
+  [],
   [
     {
       "message": "Your role has been upgraded to Super Admin.",

@@ -4,7 +4,7 @@ import { AuthService } from '../auth.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router'; // RouterModule 추가
+import { RouterModule } from '@angular/router'; 
 import { NavBarComponent } from '../nav-bar/nav-bar.component';
 import { TopNavComponent } from '../top-nav/top-nav.component';
 import { GroupListComponent } from '../group-list/group-list.component';
@@ -14,7 +14,7 @@ import { GroupListComponent } from '../group-list/group-list.component';
   standalone: true,
   templateUrl: './group-admin.component.html',
   styleUrls: ['./group-admin.component.css'],
-  imports: [CommonModule, FormsModule, RouterModule, NavBarComponent, TopNavComponent, GroupListComponent] // RouterModule 추가
+  imports: [CommonModule, FormsModule, RouterModule, NavBarComponent, TopNavComponent, GroupListComponent] 
 })
 export class GroupAdminComponent implements OnInit {
   title = 'Group Admin Dashboard';
@@ -53,7 +53,8 @@ export class GroupAdminComponent implements OnInit {
     }
   }
 
+  // 그룹 상세 페이지로 이동
   navigateToGroup(groupId: string) {
-    this.router.navigate([`/groups/${groupId}`]);
+    this.router.navigate([`/groups/${groupId}`]);  // 그룹 상세 페이지로 라우팅
   }
 }

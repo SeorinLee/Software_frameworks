@@ -1,7 +1,21 @@
 <nav class="top-nav">
   <ul>
-    <!-- All Groups 링크 -->
-    <li><a [routerLink]="[dashboardRoute]">All Groups</a></li>
+    <!-- 모든 유저들이 공통적으로 보는 그룹 목록 -->
+    <li> <a [routerLink]="[dashboardRoute]">All Groups</a></li>
+
+    
+
+    <!-- Super Admin 전용 메뉴 -->
+    <li *ngIf="isSuperAdmin()">
+      <a routerLink="/group-management">Group Management</a>
+    </li>
+
+
+
+        <!-- Group Admin 전용 메뉴 -->
+        <li *ngIf="isGroupAdmin()">
+          <a routerLink="/group-admin">My Groups</a>  <!-- Group Admin이 생성한 그룹 -->
+        </li>
 
     <!-- My Joined Groups 링크 -->
     <li *ngIf="isUser() || isGroupAdmin() || isSuperAdmin()">
@@ -9,5 +23,12 @@
       <a [routerLink]="['/group-admin/joined-groups']" *ngIf="isGroupAdmin()">My Joined Groups</a>
       <a [routerLink]="['/user-dashboard/joined-groups']" *ngIf="isUser()">My Joined Groups</a>
     </li>
+
+        <!-- Group Detail 링크
+        <li *ngIf="isUser() || isGroupAdmin() || isSuperAdmin()">
+          <a [routerLink]="['/groups/', selectedGroupId]">Group Details</a>
+        </li> -->
   </ul>
+
+  
 </nav>

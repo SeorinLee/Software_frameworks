@@ -17,6 +17,7 @@ export class GroupListComponent implements OnInit {
   userGroups: any[] = [];
   userRoles: string[] = [];
   userId: string = ''; // 현재 사용자의 ID
+  myGroups: any[] = []; // 본인이 생성한 그룹 저장
 
   constructor(private http: HttpClient, private authService: AuthService, private router: Router) {}
 
@@ -34,6 +35,9 @@ export class GroupListComponent implements OnInit {
   loadGroups() {
     this.http.get<any[]>('http://localhost:4002/api/groups').subscribe({
       next: (data) => {
+        // 본인이 생성한 그룹 저장
+        this.myGroups = data.filter(group => group.creatorId === this.userId);
+
         // Super Admin 또는 Group Admin은 본인이 생성한 그룹을 제외하고 필터링
         if (this.userRoles.includes('Super Admin') || this.userRoles.includes('Group Admin')) {
           this.groups = data.filter(group => group.creatorId !== this.userId);
@@ -51,51 +55,21 @@ export class GroupListComponent implements OnInit {
     });
   }
 
-// 그룹 가입 요청 처리
-// 그룹 가입 요청 처리
-joinGroup(groupId: string, creatorRole: string) {
-  const user = this.authService.getStoredUser();
+  // 그룹 가입 요청 처리
+  joinGroup(groupId: string) {
+    const user = this.authService.getStoredUser();
 
-  // Super Admin은 즉시 가입
-  if (this.userRoles.includes('Super Admin')) {
+    // 모든 사용자는 즉시 가입 (Pending 없이 Accepted)
     this.http.post(`http://localhost:4002/api/groups/${groupId}/join`, { userId: user.id }).subscribe({
       next: () => {
-        alert('Successfully joined the group as Super Admin.');
+        alert('Successfully joined the group.');
         this.loadGroups();  // 그룹 목록을 다시 불러와 화면을 갱신
       },
       error: (error) => {
         console.error('Error joining group:', error);
       }
     });
-  } 
-  // Group Admin은 승인 필요
-  else if (this.userRoles.includes('Group Admin') && (creatorRole === 'Super Admin' || creatorRole === 'Group Admin')) {
-    alert('Your request to join the group has been sent to the group admin.');
-    this.http.post(`http://localhost:4002/api/groups/${groupId}/join`, { userId: user.id }).subscribe({
-      next: () => {
-        alert('Join request sent successfully.');
-        this.loadGroups();  // 그룹 목록을 다시 불러와 화면을 갱신
-      },
-      error: (error) => {
-        console.error('Error sending join request:', error);
-      }
-    });
-  } 
-  // 일반 사용자는 승인 필요
-  else if (this.userRoles.includes('User')) {
-    alert('Your request to join the group has been sent to the group admin.');
-    this.http.post(`http://localhost:4002/api/groups/${groupId}/join`, { userId: user.id }).subscribe({
-      next: () => {
-        alert('Join request sent successfully.');
-        this.loadGroups();  // 그룹 목록을 다시 불러와 화면을 갱신
-      },
-      error: (error) => {
-        console.error('Error sending join request:', error);
-      }
-    });
   }
-}
-
 
   // 그룹 상세 페이지로 이동
   navigateToGroup(groupId: string) {

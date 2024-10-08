@@ -37,6 +37,46 @@
       {
         "groupId": "1728275461063",
         "status": "Accepted"
+      },
+      {
+        "groupId": "1728279285316",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728279545515",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728280008598",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728280136356",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728277026332",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728281310682",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728281232301",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728281903509",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728281956928",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728307070281",
+        "status": "Accepted"
       }
     ],
     "dob": "2024-10-26"
@@ -72,8 +112,92 @@
       {
         "groupId": "1727966279290",
         "status": "Accepted"
+      },
+      {
+        "groupId": "1728281232301",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728281903509",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728281956928",
+        "status": "Accepted"
+      },
+      {
+        "groupId": "1728307070281",
+        "status": "Accepted"
       }
     ],
     "dob": "2024-10-25"
+  },
+  {
+    "id": "4",
+    "username": "u1",
+    "password": "9074",
+    "firstName": "user1",
+    "lastName": "1",
+    "email": "u1@u.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [
+      {
+        "groupId": "1727964342381",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1728279285316",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1728280136356",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1728281232301",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1728281310682",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1728281956928",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1728281903509",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1728282891465",
+        "status": "Pending"
+      },
+      {
+        "groupId": "1728307070281",
+        "status": "Accepted"
+      }
+    ],
+    "dob": "2024-10-24"
+  },
+  {
+    "id": "5",
+    "username": "g2",
+    "password": "9074",
+    "firstName": "g2",
+    "lastName": "g2",
+    "email": "g2.com",
+    "roles": [
+      "Group Admin"
+    ],
+    "groups": [
+      {
+        "groupId": "1728307070281",
+        "status": "Accepted"
+      }
+    ],
+    "dob": "2024-10-24"
   }
 ]

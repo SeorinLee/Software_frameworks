@@ -1,13 +1,28 @@
 <div class="group-list">
-  <h2>그룹 목록</h2>
+  <h2>Available Groups</h2>
   <ul>
     <li *ngFor="let group of groups">
       <div>
         <strong>{{ group.name }}</strong>
-        <p>{{ group.description }}</p> <!-- 그룹 설명 추가 -->
+        <p>{{ group.description }}</p>
         <span> - {{ group.creatorName }}</span>
-        <!-- 그룹 클릭 시 가입 요청을 처리 -->
-        <button *ngIf="true" (click)="joinGroup(group.id, group.creatorRole)">Join</button>
+        <!-- 본인이 생성한 그룹은 Join 버튼 숨김 -->
+        <button *ngIf="group.creatorId !== userId" (click)="joinGroup(group.id)">Join</button>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<div class="my-groups">
+  <h2>My Groups</h2>
+  <ul>
+    <li *ngFor="let group of myGroups">
+      <div>
+        <strong>{{ group.name }}</strong>
+        <p>{{ group.description }}</p>
+        <span> - Created by You</span>
+        <!-- 본인이 생성한 그룹 상세 페이지로 이동 -->
+        <button (click)="navigateToGroup(group.id)">View Group</button>
       </div>
     </li>
   </ul>
