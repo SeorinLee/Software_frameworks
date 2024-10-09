@@ -14,6 +14,8 @@ import { AuthGuard } from './auth.guard';
 import { GroupDetailComponent } from './group-detail/group-detail.component';
 import { GroupListComponent } from './group-list/group-list.component'; 
 import { MyJoinedGroupsComponent } from './my-joined-groups/my-joined-groups.component';  // MyJoinedGroupsComponent import
+import { ChatComponent } from './chat/chat.component';  
+
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -49,5 +51,7 @@ export const routes: Routes = [
   { path: 'groups', component: GroupListComponent },  // GroupListComponent 추가
   { path: 'my-joined-groups', component: MyJoinedGroupsComponent, canActivate: [AuthGuard], data: { role: ['super admin', 'group admin', 'user'] } }, // 별도의 경로로도 추가 가능
 
+  { path: 'chat/:id', component: ChatComponent, canActivate: [AuthGuard], data: { role: ['super admin', 'group admin', 'user'] } },
+  
   { path: '**', redirectTo: 'login' }
 ];

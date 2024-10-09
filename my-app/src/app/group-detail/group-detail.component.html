@@ -23,6 +23,8 @@
 <div *ngIf="showChannels" class="group-detail-container">
   <h2>Group Channels</h2>
   <ul>
-    <li *ngFor="let channel of groupChannels">{{ channel.name }}</li>
+    <li *ngFor="let channel of groupChannels" (click)="navigateToChannel(channel.id)">
+      {{ channel.name }}
+    </li>
   </ul>
 </div>

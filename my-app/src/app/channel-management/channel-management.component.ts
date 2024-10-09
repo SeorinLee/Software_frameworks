@@ -34,10 +34,16 @@ export class ChannelManagementComponent {
   loadChannels(groupId: string) {
     this.selectedGroupId = groupId;
     const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };
-    this.http.get<any[]>(`http://localhost:4002/api/groups/${groupId}/channels`, { headers }).subscribe(data => {
-      this.channels = data;
+    this.http.get<any[]>(`http://localhost:4002/api/groups/${groupId}/channels`, { headers }).subscribe({
+      next: (data) => {
+        this.channels = data;  // 성공 시, 채널 데이터를 UI에 반영
+      },
+      error: (error) => {
+        console.error('Error loading channels:', error);  // 오류 로그 확인
+      }
     });
   }
+  
 
   createChannel() {
     if (!this.newChannelName || !this.newChannelDescription) {
@@ -52,10 +58,12 @@ export class ChannelManagementComponent {
       creator: this.authService.getStoredUser().username
     };
   
+    // 서버에 새로운 채널을 생성 요청
     this.http.post(`http://localhost:4002/api/groups/${this.selectedGroupId}/channels`, newChannel).subscribe({
       next: () => {
         alert('채널이 성공적으로 생성되었습니다.');
-        this.loadChannels(this.selectedGroupId);
+        // 채널 생성 후 채널 목록을 다시 로드
+        this.loadChannels(this.selectedGroupId); // 이 부분에서 새로 생성된 채널을 포함하여 목록을 갱신
         this.newChannelName = '';
         this.newChannelDescription = '';
         this.showCreateChannelForm = false;  // 생성 후 폼 숨기기
@@ -65,7 +73,8 @@ export class ChannelManagementComponent {
         alert(error.error ? error.error.error : '채널 생성 중 오류가 발생했습니다.');
       }
     });
-  }  
+  }
+  
 
   deleteChannel(channelId: string) {
     if (confirm('Are you sure you want to delete this channel?')) {

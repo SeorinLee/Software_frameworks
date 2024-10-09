@@ -1,25 +1,89 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const http = require('http');
+const { Server } = require('socket.io');
+const bodyParser = require('body-parser'); // body-parser 추가
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
+
 const app = express();
 const port = 4002;
 
-app.use(bodyParser.json());
-app.use(cors());
-app.use(express.json());
+// body-parser 미들웨어 설정
+app.use(bodyParser.json());  // JSON 본문 파싱
+app.use(bodyParser.urlencoded({ extended: true }));  // URL 인코딩된 본문 파싱
+
+
+// MongoDB 연결
+async function connectDB() {
+  try {
+    await mongoose.connect('mongodb://localhost:27017/chatApp');
+    console.log('MongoDB 연결 성공');
+  } catch (err) {
+    console.error('MongoDB 연결 오류:', err);
+  }
+}
+
+connectDB();
+
+// MongoDB 채널 모델 가져오기
+const Channel = require('./models/Channel');
 
 const usersFilePath = path.join(__dirname, 'users.json');
 const notificationsFilePath = path.join(__dirname, 'notifications.json');
 const groupsFilePath = path.join(__dirname, 'groups.json');
-const channelsFilePath = path.join(__dirname, 'channels.json');
 
 // CORS 설정
 app.use(cors({
-  origin: 'http://localhost:4200',  // Angular 애플리케이션이 실행되는 도메인
-  credentials: true,  // 쿠키를 포함한 자격 증명을 허용
+  origin: 'http://localhost:4200',
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],  // 필요한 헤더 추가
 }));
+
+
+// Socket.IO 설정
+const server = http.createServer(app); // HTTP 서버 생성
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:4200",  // 클라이언트의 URL
+    methods: ["GET", "POST"],
+    credentials: true,  // 쿠키 및 인증 정보를 허용
+  },
+  transports: ['websocket', 'polling'],  // WebSocket을 우선 사용, 폴링을 폴백으로 사용
+  path: '/socket.io'  // 경로 설정
+});
+
+
+// Socket.IO 연결 처리
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  socket.on('joinChannel', (channelId) => {
+    socket.join(channelId);
+    io.to(channelId).emit('userJoined', `User joined the channel ${channelId}`);
+  });
+
+  socket.on('sendMessage', async (message, channelId) => {
+    try {
+      const channel = await Channel.findOne({ id: channelId });
+      if (!channel) {
+        return console.log('Channel not found');
+      }
+      const newMessage = { user: message.user, content: message.content };
+      channel.messages.push(newMessage);
+      await channel.save();
+      io.to(channelId).emit('receiveMessage', newMessage);
+    } catch (error) {
+      console.error('Error saving or sending message:', error);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
 
 // 파일을 로드하는 유틸리티 함수
 function loadFile(filePath) {
@@ -35,15 +99,15 @@ function saveFile(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
+// 파일로 관리하는 데이터 로드
 let users = loadFile(usersFilePath);
 let notifications = loadFile(notificationsFilePath);
 let groups = loadFile(groupsFilePath);
-let channels = loadFile(channelsFilePath);
 
-// 사용자 알림 추가 함수 (유저 ID별로 알림 추가)
+// 사용자 알림 추가 함수
 function addNotification(userId, message) {
   if (!notifications[userId]) {
-    notifications[userId] = [];  // 각 유저 ID에 대한 알림 배열
+    notifications[userId] = [];
   }
   notifications[userId].push({ message, timestamp: new Date().toISOString() });
   saveFile(notificationsFilePath, notifications);
@@ -59,18 +123,16 @@ app.get('/api/users', (req, res) => {
   res.json(users);
 });
 
-// 사용자 알림 조회 API
+// 사용자 알림 조회
 app.get('/api/notifications/:userId', (req, res) => {
   const { userId } = req.params;
   const userNotifications = notifications[userId] || [];
-  
   if (userNotifications.length > 0) {
     res.json(userNotifications);
   } else {
     res.status(404).json({ message: 'No notifications found' });
   }
 });
-
 
 // 사용자 인증 (로그인)
 app.post('/api/auth', (req, res) => {
@@ -248,7 +310,7 @@ app.post('/api/groups', (req, res) => {
   const { name, description, creator } = req.body;
 
   if (!name || !description || !creator) {
-    return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
+    return res.status(400).json({ error: 'All fields are required' });
   }
 
   const newGroupId = Date.now().toString(); // 타임스탬프를 ID로 생성
@@ -263,9 +325,6 @@ app.post('/api/groups', (req, res) => {
 
   res.status(201).json({ group: newGroup });
 });
-
-
-
 
 // 그룹 삭제
 app.delete('/api/groups/:id', (req, res) => {
@@ -300,13 +359,12 @@ app.get('/api/groups', (req, res) => {
 });
 
 // 특정 그룹 조회
-// 그룹 이름을 기반으로 그룹 검색
-app.get('/api/groups/name/:name', (req, res) => {
-  const groupName = req.params.name;
-  const group = groups.find(group => group.name === groupName);
-
+app.get('/api/groups/:id', (req, res) => {
+  const { id } = req.params;
+  const group = groups.find(g => g.id === id);  // groups 배열에서 ID로 그룹 찾기
+  
   if (!group) {
-    return res.status(404).json({ error: 'Group not found' });
+    return res.status(404).json({ message: 'Group not found' });
   }
 
   res.json(group);
@@ -333,27 +391,37 @@ app.get('/api/users/:id/groups', (req, res) => {
 });
 
 
-
-
-// 채널 생성
-app.post('/api/groups/:groupId/channels', (req, res) => {
+// 새로운 채널 생성 API
+app.post('/api/groups/:groupId/channels', async (req, res) => {
   const { groupId } = req.params;
   const { name, description, creator } = req.body;
 
+  console.log('Received data:', req.body); // 입력 데이터 확인
+
   if (!name || !description || !creator) {
-    return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
+    return res.status(400).json({ error: 'All fields are required' });
   }
 
-  // 타임스탬프를 이용한 고유 ID 생성
   const newChannelId = Date.now().toString();
 
-  const newChannel = { id: newChannelId, name, description, groupId, creator };
-  channels.push(newChannel);
-  saveFile(channelsFilePath, channels);
+  const newChannel = new Channel({
+    id: newChannelId,
+    name,
+    description,
+    groupId,
+    creator,
+    messages: []
+  });
 
-  res.status(201).json(newChannel);
+  try {
+    await newChannel.save();
+    console.log('Channel successfully saved:', newChannel); // 저장 확인 로그
+    return res.status(201).json(newChannel);
+  } catch (error) {
+    console.error('Error creating channel:', error);
+    return res.status(500).json({ message: 'Error creating channel', error });
+  }
 });
-
 
 // 그룹 삭제
 app.delete('/api/groups/:id', (req, res) => {
@@ -380,20 +448,31 @@ app.delete('/api/groups/:id', (req, res) => {
   }
 });
 
-
 // 그룹 내 채널 조회
-app.get('/api/groups/:groupId/channels', (req, res) => {
-  const { groupId } = req.params;
+app.get('/api/groups/:groupId/channels', async (req, res) => {
+  const { groupId } = req.params;  // URL에서 groupId를 가져옴
+  console.log(`Fetching channels for groupId: ${groupId}`);  // 로그 추가
 
-  // 해당 그룹의 채널을 필터링
-  const groupChannels = channels.filter(channel => channel.groupId === groupId);
+  try {
+    // MongoDB에서 groupId에 해당하는 채널 찾기
+    const groupChannels = await Channel.find({ groupId });
 
-  // 채널이 없을 경우 빈 배열을 반환
-  res.json(groupChannels);
+    if (!groupChannels || groupChannels.length === 0) {
+      return res.status(404).json({ message: 'No channels found for this group.' });
+    }
+
+    // 채널이 있으면 응답으로 반환
+    res.json(groupChannels);
+  } catch (error) {
+    console.error('Error fetching group channels:', error);
+    res.status(500).json({ message: 'Error fetching group channels' });
+  }
 });
 
+
+
 // 채널 삭제
-app.delete('/api/groups/:groupId/channels/:channelId', (req, res) => {
+app.delete('/api/groups/:groupId/channels/:channelId', async (req, res) => {
   const { groupId, channelId } = req.params;
 
   // 사용자 정보를 헤더에서 가져옴. 헤더가 비어 있으면 오류 반환.
@@ -410,23 +489,28 @@ app.delete('/api/groups/:groupId/channels/:channelId', (req, res) => {
     return res.status(400).json({ error: 'Invalid user information in headers.' });
   }
 
-  const channelIndex = channels.findIndex(channel => channel.id === channelId && channel.groupId === groupId);
+  try {
+    // MongoDB에서 해당 채널을 찾음
+    const channel = await Channel.findOne({ id: channelId, groupId });
 
-  if (channelIndex === -1) {
-    return res.status(404).json({ error: 'Channel not found' });
-  }
+    if (!channel) {
+      return res.status(404).json({ error: 'Channel not found' });
+    }
 
-  const channel = channels[channelIndex];
-
-  // Group Admin이 자신이 생성한 채널만 삭제할 수 있음, Super Admin은 모든 채널 삭제 가능
-  if (user.roles.includes('Super Admin') || (user.roles.includes('Group Admin') && channel.creator === user.username)) {
-    channels.splice(channelIndex, 1);  // 채널 삭제
-    saveFile(channelsFilePath, channels);  // 삭제 후 파일에 저장
-    res.status(200).json({ message: 'Channel deleted successfully' });
-  } else {
-    res.status(403).json({ error: 'You do not have permission to delete this channel.' });
+    // Super Admin 또는 Group Admin이 생성한 채널만 삭제 가능
+    if (user.roles.includes('Super Admin') || (user.roles.includes('Group Admin') && channel.creator === user.username)) {
+      // MongoDB에서 채널 삭제
+      await Channel.deleteOne({ id: channelId, groupId });
+      return res.status(200).json({ message: 'Channel deleted successfully' });
+    } else {
+      return res.status(403).json({ error: 'You do not have permission to delete this channel.' });
+    }
+  } catch (error) {
+    console.error('Error deleting channel:', error);
+    return res.status(500).json({ error: 'An error occurred while deleting the channel' });
   }
 });
+
 
 // 사용자 삭제 
 
@@ -509,9 +593,6 @@ app.post('/api/groups/:groupId/invite', (req, res) => {
   res.status(200).json({ message: 'User invited successfully.' });
 });
 
-
-
-// 그룹 참여 수락 API (Super Admin은 자동 가입, 나머지는 승낙 대기)
 // 그룹 참여 수락 API (모든 사용자 즉시 가입)
 app.post('/api/groups/:groupId/join', (req, res) => {
   const groupId = req.params.groupId;
@@ -597,6 +678,51 @@ app.get('/api/users/search', (req, res) => {
 
   res.json(result);
 });
+
+
+// MongoDB로 채널 데이터를 관리하는 API
+app.post('/api/channels', async (req, res) => {
+  const { name, description } = req.body;
+  const newChannelId = Date.now().toString();  // 고유한 ID로 타임스탬프를 사용
+
+  try {
+    const newChannel = new Channel({ id: newChannelId, name, description });
+    console.log('Creating new channel:', newChannel);
+    await newChannel.save();
+    console.log('Channel saved:', newChannel);
+    res.status(201).json(newChannel);
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating channel', error });
+  }
+});
+
+
+
+
+// MongoDB에서 특정 채널의 메시지를 가져오는 API
+// MongoDB에서 특정 채널의 메시지를 가져오는 API
+app.get('/api/channels/:channelId/messages', async (req, res) => {
+  const { channelId } = req.params;
+  console.log(`Fetching messages for channel: ${channelId}`);
+  
+  try {
+    // MongoDB에서 채널을 ID로 찾음
+    const channel = await Channel.findOne({ id: channelId });
+    
+    if (!channel) {
+      console.log('Channel not found, returning 404');
+      return res.status(404).json({ message: 'Channel not found' });
+    }
+    
+    // 채널의 메시지 배열을 반환
+    return res.status(200).json(channel.messages);
+  } catch (error) {
+    console.error('Error retrieving messages:', error);
+    return res.status(500).json({ message: 'Error retrieving messages', error });
+  }
+});
+
+
 
 
 
