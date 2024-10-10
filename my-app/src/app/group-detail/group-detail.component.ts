@@ -28,6 +28,7 @@ export class GroupDetailComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    // 그룹 ID를 얻고 그룹 세부 정보를 로드합니다.
     this.groupId = this.route.snapshot.paramMap.get('id')!;
     this.loadGroupDetails(this.groupId);
     this.loadGroupMembers(this.groupId);
@@ -36,7 +37,6 @@ export class GroupDetailComponent implements OnInit {
 
   // 그룹 세부 정보 로드
   loadGroupDetails(groupId: string) {
-    console.log('Fetching group details for:', groupId);  // 추가
     this.http.get(`http://localhost:4002/api/groups/${groupId}`).subscribe({
       next: (data) => {
         this.group = data;
@@ -59,18 +59,17 @@ export class GroupDetailComponent implements OnInit {
     });
   }
 
-// 그룹 채널 로드
-loadGroupChannels() {
-  this.http.get<any[]>(`http://localhost:4002/api/groups/${this.groupId}/channels`).subscribe({
-    next: (data: any[]) => {
-      this.groupChannels = data;
-    },
-    error: (error) => {
-      console.error('Error loading group channels:', error);
-    }
-  });
-}
-
+  // 그룹 채널 로드
+  loadGroupChannels() {
+    this.http.get<any[]>(`http://localhost:4002/api/groups/${this.groupId}/channels`).subscribe({
+      next: (data: any[]) => {
+        this.groupChannels = data;
+      },
+      error: (error) => {
+        console.error('Error loading group channels:', error);
+      }
+    });
+  }
 
   // 멤버 탭 표시
   showMembersTab() {

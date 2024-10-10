@@ -1,6 +1,4 @@
 const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
 const bodyParser = require('body-parser'); // body-parser 추가
 const cors = require('cors');
 const path = require('path');
@@ -9,6 +7,7 @@ const mongoose = require('mongoose');
 
 const app = express();
 const port = 4002;
+
 
 // body-parser 미들웨어 설정
 app.use(bodyParser.json());  // JSON 본문 파싱
@@ -34,55 +33,57 @@ const usersFilePath = path.join(__dirname, 'users.json');
 const notificationsFilePath = path.join(__dirname, 'notifications.json');
 const groupsFilePath = path.join(__dirname, 'groups.json');
 
-// CORS 설정
 app.use(cors({
   origin: 'http://localhost:4200',
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization'],  // 필요한 헤더 추가
+  allowedHeaders: ['Content-Type', 'Authorization', 'user'],  // 필요한 헤더 추가
+  optionsSuccessStatus: 200,  // 일부 브라우저의 CORS 이슈 해결
+  preflightContinue: true,  // 프리플라이트 요청 통과 허용
 }));
 
 
-// Socket.IO 설정
-const server = http.createServer(app); // HTTP 서버 생성
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:4200",  // 클라이언트의 URL
-    methods: ["GET", "POST"],
-    credentials: true,  // 쿠키 및 인증 정보를 허용
-  },
-  transports: ['websocket', 'polling'],  // WebSocket을 우선 사용, 폴링을 폴백으로 사용
-  path: '/socket.io'  // 경로 설정
+// HTTP 기반의 채팅 메시지 처리 API
+app.post('/api/channels/:channelId/messages', async (req, res) => {
+  const { channelId } = req.params;
+  const { user, content } = req.body;  // 클라이언트에서 보낸 메시지 데이터
+
+  try {
+    // 채널 찾기
+    const channel = await Channel.findOne({ id: channelId });
+    if (!channel) {
+      return res.status(404).json({ message: 'Channel not found' });
+    }
+
+    // 새로운 메시지 추가
+    const newMessage = { user, content };
+    channel.messages.push(newMessage);
+    await channel.save();
+
+    // 성공적으로 저장된 메시지 반환
+    res.status(201).json(newMessage);
+  } catch (error) {
+    console.error('Error saving message:', error);
+    res.status(500).json({ message: 'Failed to save message' });
+  }
 });
 
+// 특정 채널의 메시지 가져오기
+app.get('/api/channels/:channelId/messages', async (req, res) => {
+  const { channelId } = req.params;
 
-// Socket.IO 연결 처리
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
-
-  socket.on('joinChannel', (channelId) => {
-    socket.join(channelId);
-    io.to(channelId).emit('userJoined', `User joined the channel ${channelId}`);
-  });
-
-  socket.on('sendMessage', async (message, channelId) => {
-    try {
-      const channel = await Channel.findOne({ id: channelId });
-      if (!channel) {
-        return console.log('Channel not found');
-      }
-      const newMessage = { user: message.user, content: message.content };
-      channel.messages.push(newMessage);
-      await channel.save();
-      io.to(channelId).emit('receiveMessage', newMessage);
-    } catch (error) {
-      console.error('Error saving or sending message:', error);
+  try {
+    const channel = await Channel.findOne({ id: channelId });
+    if (!channel) {
+      return res.status(404).json({ message: 'Channel not found' });
     }
-  });
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
+    // 채널의 모든 메시지 반환
+    res.json(channel.messages);
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ message: 'Failed to fetch messages' });
+  }
 });
 
 // 파일을 로드하는 유틸리티 함수
@@ -730,5 +731,3 @@ app.get('/api/channels/:channelId/messages', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-
-
