@@ -1,9 +1,10 @@
-<div class="chat-container">
-  <div class="messages">
-    <div *ngFor="let message of messages" class="message">{{ message }}</div>
+<div *ngFor="let message of messages">
+  <div [ngClass]="message.user === 'System' ? 'system-message' : (isCurrentUserMessage(message) ? 'my-message' : 'other-message')">
+    <strong *ngIf="!isCurrentUserMessage(message)">{{ message.user }}</strong>: {{ message.content }}
   </div>
-  <div class="input-container">
-    <input [(ngModel)]="newMessage" type="text" placeholder="Type a message..." />
-    <button (click)="sendMessage()">Send</button>
-  </div>
+</div>
+
+<div class="message-input">
+  <input [(ngModel)]="newMessage" placeholder="Type a message..." />
+  <button (click)="sendMessage()">Send</button>
 </div>

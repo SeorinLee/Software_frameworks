@@ -1,11 +1,17 @@
 const express = require('express');
-const bodyParser = require('body-parser'); // body-parser 추가
+const bodyParser = require('body-parser');
 const cors = require('cors');
+const http = require('http');
+const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
-const mongoose = require('mongoose');
+const setupSocket = require('./sockets'); // socket.js에서 setupSocket 함수 가져오기
+
 
 const app = express();
+const server = http.createServer(app);
+// socket.io 설정
+const io = setupSocket(server); // socket 설정 함수 호출
 const port = 4002;
 
 
@@ -43,30 +49,30 @@ app.use(cors({
 }));
 
 
-// HTTP 기반의 채팅 메시지 처리 API
+// 채널 메시지 전송 API
 app.post('/api/channels/:channelId/messages', async (req, res) => {
   const { channelId } = req.params;
-  const { user, content } = req.body;  // 클라이언트에서 보낸 메시지 데이터
+  const { user, content, userId } = req.body; // userId 포함
 
   try {
-    // 채널 찾기
     const channel = await Channel.findOne({ id: channelId });
     if (!channel) {
       return res.status(404).json({ message: 'Channel not found' });
     }
 
-    // 새로운 메시지 추가
-    const newMessage = { user, content };
+    const newMessage = { user, content, userId }; // userId 포함
     channel.messages.push(newMessage);
     await channel.save();
 
-    // 성공적으로 저장된 메시지 반환
+    io.to(channelId).emit('receiveMessage', newMessage);
+
     res.status(201).json(newMessage);
   } catch (error) {
     console.error('Error saving message:', error);
     res.status(500).json({ message: 'Failed to save message' });
   }
 });
+
 
 // 특정 채널의 메시지 가져오기
 app.get('/api/channels/:channelId/messages', async (req, res) => {
@@ -85,6 +91,22 @@ app.get('/api/channels/:channelId/messages', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch messages' });
   }
 });
+
+// // 소켓 연결 설정
+// io.on('connection', (socket) => {
+//   console.log('A user connected');
+
+//   // 클라이언트가 특정 채널에 들어올 때 해당 채널에 참여
+//   socket.on('joinChannel', (channelId) => {
+//     socket.join(channelId);
+//     console.log(`User joined channel: ${channelId}`);
+//   });
+
+//   // 연결 해제 시
+//   socket.on('disconnect', () => {
+//     console.log('User disconnected');
+//   });
+// });
 
 // 파일을 로드하는 유틸리티 함수
 function loadFile(filePath) {
@@ -722,9 +744,6 @@ app.get('/api/channels/:channelId/messages', async (req, res) => {
     return res.status(500).json({ message: 'Error retrieving messages', error });
   }
 });
-
-
-
 
 
 // 서버 실행
