@@ -21,12 +21,13 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/'); // 파일을 저장할 디렉토리
   },
   filename: (req, file, cb) => {
+    // 파일 이름에 시간과 원래 확장자를 포함
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, uniqueSuffix + path.extname(file.originalname)); // 원래 파일의 확장자 사용
   }
 });
 
-const upload = multer({ dest: 'uploads/' }); // 파일을 저장할 디렉토리 설정
+const upload = multer({ storage: storage });
 
 // body-parser 미들웨어 설정
 app.use(bodyParser.json());  // JSON 본문 파싱
@@ -62,19 +63,19 @@ app.use(cors({
 }));
 
 // 정적 파일 제공 (업로드된 이미지 접근)
-// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // 채널 메시지 전송 API (파일 업로드 처리 추가)
 app.post('/api/channels/:channelId/messages', upload.single('file'), async (req, res) => {
   const { channelId } = req.params;
-  const { user, content, userId } = JSON.parse(req.body.message); // 메시지 정보 파싱
 
   let fileUrl = '';
   if (req.file) {
     fileUrl = `http://localhost:4002/uploads/${req.file.filename}`; // 파일 URL 생성
   }
 
+  const { user, content, userId } = JSON.parse(req.body.message); // 메시지 정보 파싱
   const newMessage = { user, content, userId, fileUrl, fileType: req.file ? req.file.mimetype.split('/')[0] : null }; // 메시지에 파일 URL 추가
 
   try {
