@@ -65,7 +65,6 @@ app.use(cors({
 // 정적 파일 제공 (업로드된 이미지 접근)
  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
 // 채널 메시지 전송 API (파일 업로드 처리 추가)
 app.post('/api/channels/:channelId/messages', upload.single('file'), async (req, res) => {
   const { channelId } = req.params;
