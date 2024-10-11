@@ -5,6 +5,7 @@ const http = require('http');
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer'); // Multer 가져오기
 const setupSocket = require('./sockets'); // socket.js에서 setupSocket 함수 가져오기
 
 
@@ -14,6 +15,18 @@ const server = http.createServer(app);
 const io = setupSocket(server); // socket 설정 함수 호출
 const port = 4002;
 
+// Multer 설정
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // 파일을 저장할 디렉토리
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname)); // 원래 파일의 확장자 사용
+  }
+});
+
+const upload = multer({ dest: 'uploads/' }); // 파일을 저장할 디렉토리 설정
 
 // body-parser 미들웨어 설정
 app.use(bodyParser.json());  // JSON 본문 파싱
@@ -48,11 +61,21 @@ app.use(cors({
   preflightContinue: true,  // 프리플라이트 요청 통과 허용
 }));
 
+// 정적 파일 제공 (업로드된 이미지 접근)
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 채널 메시지 전송 API
-app.post('/api/channels/:channelId/messages', async (req, res) => {
+
+// 채널 메시지 전송 API (파일 업로드 처리 추가)
+app.post('/api/channels/:channelId/messages', upload.single('file'), async (req, res) => {
   const { channelId } = req.params;
-  const { user, content, userId } = req.body; // userId 포함
+  const { user, content, userId } = JSON.parse(req.body.message); // 메시지 정보 파싱
+
+  let fileUrl = '';
+  if (req.file) {
+    fileUrl = `http://localhost:4002/uploads/${req.file.filename}`; // 파일 URL 생성
+  }
+
+  const newMessage = { user, content, userId, fileUrl, fileType: req.file ? req.file.mimetype.split('/')[0] : null }; // 메시지에 파일 URL 추가
 
   try {
     const channel = await Channel.findOne({ id: channelId });
@@ -60,18 +83,17 @@ app.post('/api/channels/:channelId/messages', async (req, res) => {
       return res.status(404).json({ message: 'Channel not found' });
     }
 
-    const newMessage = { user, content, userId }; // userId 포함
     channel.messages.push(newMessage);
     await channel.save();
 
-    io.to(channelId).emit('receiveMessage', newMessage);
-
-    res.status(201).json(newMessage);
+    io.to(channelId).emit('receiveMessage', newMessage); // 클라이언트에 메시지 전송
+    res.status(201).json(newMessage); // 클라이언트에 메시지 응답
   } catch (error) {
     console.error('Error saving message:', error);
     res.status(500).json({ message: 'Failed to save message' });
   }
 });
+
 
 
 // 특정 채널의 메시지 가져오기
@@ -91,6 +113,24 @@ app.get('/api/channels/:channelId/messages', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch messages' });
   }
 });
+
+// 활성 사용자 목록 가져오기
+app.get('/api/channels/:channelId/active-users', async (req, res) => {
+  const { channelId } = req.params;
+
+  try {
+    const channel = await Channel.findOne({ id: channelId });
+    if (!channel) {
+      return res.status(404).json({ message: 'Channel not found' });
+    }
+
+    res.json(channel.activeUsers);
+  } catch (error) {
+    console.error('Error fetching active users:', error);
+    res.status(500).json({ message: 'Failed to fetch active users' });
+  }
+});
+
 
 // // 소켓 연결 설정
 // io.on('connection', (socket) => {
@@ -433,7 +473,8 @@ app.post('/api/groups/:groupId/channels', async (req, res) => {
     description,
     groupId,
     creator,
-    messages: []
+    messages: [],
+    activeUsers: [] // 활성 사용자 초기화
   });
 
   try {

@@ -140,6 +140,10 @@
       {
         "groupId": "1728420332153",
         "status": "Accepted"
+      },
+      {
+        "groupId": "1728577497768",
+        "status": "Accepted"
       }
     ],
     "dob": "2024-10-25"
@@ -215,5 +219,23 @@
       }
     ],
     "dob": "2024-10-24"
+  },
+  {
+    "id": "6",
+    "username": "u3",
+    "password": "9074",
+    "firstName": "user3",
+    "lastName": "3",
+    "email": "u3@u.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [
+      {
+        "groupId": "1728307070281",
+        "status": "Accepted"
+      }
+    ],
+    "dob": "2024-10-22"
   }
 ]

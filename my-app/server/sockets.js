@@ -1,37 +1,8 @@
-// const express = require('express');
-// const bodyParser = require('body-parser');
-// const cors = require('cors');
-// const app = express();
-// const port = 4002;
-
-// app.use(bodyParser.json());
-// app.use(cors());
-
-// let messages = [];  // 메시지 저장소
-
-// // 메시지 조회 엔드포인트 (주기적으로 클라이언트에서 호출)
-// app.get('/api/messages', (req, res) => {
-//   res.json(messages);
-// });
-
-// // 메시지 전송 엔드포인트
-// app.post('/api/messages', (req, res) => {
-//   const { user, message } = req.body;
-//   if (message && user) {
-//     messages.push({ user, message, timestamp: new Date() });  // 유저와 메시지 함께 저장
-//     res.status(200).json({ success: true });
-//   } else {
-//     res.status(400).json({ success: false, message: 'User and message are required' });
-//   }
-// });
-
-// app.listen(port, () => {
-//   console.log(`Server running on http://localhost:${port}`);
-// });
-
 // socket.js
 const { Server } = require('socket.io'); // socket.io 가져오기
 const http = require('http');
+const Channel = require('./models/Channel'); // Channel 모델 가져오기
+const User = require('./models/user'); // User 모델 가져오기
 
 // 소켓 서버 설정 함수
 function setupSocket(server) {
@@ -46,18 +17,47 @@ function setupSocket(server) {
   io.on('connection', (socket) => {
     console.log('A user connected');
 
-    // 클라이언트가 특정 채널에 들어올 때 해당 채널에 참여
-    socket.on('joinChannel', (channelId) => {
+    socket.on('joinChannel', async (channelId, username) => {
       socket.join(channelId);
       console.log(`User joined channel: ${channelId}`);
-      
-      // 입장 메시지를 모든 클라이언트에게 전송
-      socket.to(channelId).emit('userJoined', socket.username); // socket.username을 사용하여 입장 메시지 전송
+      console.log(`${username} joined channel: ${channelId}`); // 사용자 이름과 채널 ID 콘솔에 출력
+
+
+      // MongoDB에 사용자 정보 저장
+      try {
+        const user = await User.findOneAndUpdate(
+          { username: username },
+          { $addToSet: { channels: channelId } },
+          { new: true, upsert: true }
+        );
+
+        const channel = await Channel.findOne({ id: channelId });
+        if (channel) {
+          if (!channel.activeUsers.includes(username)) {
+            channel.activeUsers.push(username);
+            await channel.save(); // 변경 사항 저장
+            console.log(`Active users updated: ${channel.activeUsers}`);
+          }
+          socket.to(channelId).emit('userJoined', { username });
+        }
+      } catch (error) {
+        console.error('Error saving user to MongoDB:', error);
+      }
     });
 
-    // 연결 해제 시
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
       console.log('User disconnected');
+      const channelId = [...socket.rooms].find(room => room !== socket.id); // 현재 방의 채널 ID 가져오기
+      const username = socket.handshake.query.username; // 연결된 사용자 이름 가져오기
+    
+      if (channelId) {
+        const channel = await Channel.findOne({ id: channelId });
+        if (channel && channel.activeUsers.includes(username)) {
+          channel.activeUsers = channel.activeUsers.filter(user => user !== username); // 사용자 제거
+          await channel.save(); // 변경 사항 저장
+          console.log(`Active users updated after disconnect: ${channel.activeUsers}`);
+        }
+      }
     });
   });
 

@@ -1,10 +1,22 @@
+<div>
+  <h4>Active Users:</h4>
+  <ul>
+    <li *ngFor="let user of activeUsers">{{ user }}</li>
+  </ul>
+</div>
+
 <div *ngFor="let message of messages">
-  <div [ngClass]="message.user === 'System' ? 'system-message' : (isCurrentUserMessage(message) ? 'my-message' : 'other-message')">
-    <strong *ngIf="!isCurrentUserMessage(message)">{{ message.user }}</strong>: {{ message.content }}
+  <div [ngClass]="isCurrentUserMessage(message) ? 'my-message' : 'other-message'">
+    <strong>{{ message.user }}</strong>: {{ message.content }}
+    <div *ngIf="message.fileUrl">
+      <img *ngIf="message.fileType === 'image'" [src]="message.fileUrl" alt="Image" style="max-width: 200px; max-height: 200px;" />
+      <video *ngIf="message.fileType === 'video'" [src]="message.fileUrl" controls width="100"></video>
+    </div>
   </div>
 </div>
 
 <div class="message-input">
   <input [(ngModel)]="newMessage" placeholder="Type a message..." />
+  <input type="file" (change)="onFileSelected($event)" />
   <button (click)="sendMessage()">Send</button>
 </div>

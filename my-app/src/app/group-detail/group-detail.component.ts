@@ -20,6 +20,7 @@ export class GroupDetailComponent implements OnInit {
   groupChannels: any[] = [];
   showMembers: boolean = true;
   showChannels: boolean = false;
+  selectedChannelId: string | null = null; // 선택된 채널 ID
 
   constructor(
     private route: ActivatedRoute,
@@ -83,8 +84,9 @@ export class GroupDetailComponent implements OnInit {
     this.showChannels = true;
   }
 
-  // 채널 선택 시 채팅 화면으로 이동
+  // 그룹 채널 선택 시 호출되는 메소드
   navigateToChannel(channelId: string) {
+    this.selectedChannelId = channelId; // 선택된 채널 ID 업데이트
     this.router.navigate([`/chat/${channelId}`]); // 채널 ID를 기반으로 채팅 컴포넌트로 이동
   }
 }
