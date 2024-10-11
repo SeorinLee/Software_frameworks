@@ -46,20 +46,7 @@
     }
   ],
   [],
-  [
-    {
-      "message": "Your role has been upgraded to Super Admin.",
-      "timestamp": "2024-09-04T11:48:14.355Z"
-    },
-    {
-      "message": "Your role has been upgraded to Super Admin.",
-      "timestamp": "2024-09-04T12:00:27.161Z"
-    },
-    {
-      "message": "You have been invited to join group test4.",
-      "timestamp": "2024-09-09T14:47:38.953Z"
-    }
-  ],
+  [],
   [
     {
       "message": "You have been invited to join group test4.",
@@ -86,12 +73,7 @@
       "timestamp": "2024-09-04T11:50:09.269Z"
     }
   ],
-  [
-    {
-      "message": "You have been promoted to Super Admin. Please accept the promotion in your notifications.",
-      "timestamp": "2024-09-04T12:05:29.457Z"
-    }
-  ],
+  [],
   [],
   [],
   [

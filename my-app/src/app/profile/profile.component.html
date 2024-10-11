@@ -5,6 +5,8 @@
 <div class="profile-container">
   <h2>Profile</h2>
   <form (submit)="onSaveProfile()">
+    <label for="profileImage">Profile Image:</label>
+    <input type="file" id="file" (change)="onProfileImageChange($event)" class="profileImage" accept="image/*"> <!-- 이미지 선택 -->
     <label for="username">Username:</label>
     <input type="text" id="username" [(ngModel)]="user.username" name="username" required readonly>
 
@@ -16,6 +18,9 @@
 
     <label for="lastName">Last Name:</label>
     <input type="text" id="lastName" [(ngModel)]="user.lastName" name="lastName" required>
+
+    <label for="dob">Date of Birth:</label>
+    <input type="date" id="dob" [(ngModel)]="user.dob" name="dob" required>  <!-- DOB 입력 필드 추가 -->
 
     <button type="submit" class="btn-save">Save Changes</button>
   </form>

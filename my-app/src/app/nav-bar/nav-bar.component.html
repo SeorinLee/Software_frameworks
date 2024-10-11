@@ -1,23 +1,19 @@
 <div class="nav-bar">
   <div class="logo">
-    <img src="images/chatlogo.png" alt="Logo">
+    <img [src]="profileImage" alt="Profile Image" class="profile-image"> <!-- 프로필 이미지 표시 -->
     <h2>{{ firstName }} {{ lastName }}</h2> <!-- 사용자 이름 표시 -->
   </div>
   <ul class="nav-links">
     <li><a (click)="navigateToProfile()">My Profile</a></li>
-        <!-- Dashboard 링크 추가 -->
-        <li *ngIf="isSuperAdmin()"><a [routerLink]="['/super-admin']">Dashboard</a></li>
-        <li *ngIf="isGroupAdmin()"><a [routerLink]="['/group-admin']">Dashboard</a></li>
-        <li *ngIf="!isSuperAdmin() && !isGroupAdmin()"><a [routerLink]="['/user-dashboard']">Dashboard</a></li>
+    <li *ngIf="isSuperAdmin()"><a [routerLink]="['/super-admin']">Dashboard</a></li>
+    <li *ngIf="isGroupAdmin()"><a [routerLink]="['/group-admin']">Dashboard</a></li>
+    <li *ngIf="!isSuperAdmin() && !isGroupAdmin()"><a [routerLink]="['/user-dashboard']">Dashboard</a></li>
 
     <li><a [routerLink]="['/notifications']">Notifications</a></li> <!-- 알림 링크 추가 -->
     <li *ngIf="isSuperAdmin()"><a [routerLink]="['/user-management']">Chat User Management</a></li>
-    
 
-
-    <!-- Chatting Management 드롭다운 -->
     <li *ngIf="isSuperAdmin() || isGroupAdmin()" class="dropdown">
-      <a  class="dropbtn">Chatting Management</a>
+      <a class="dropbtn">Chatting Management</a>
       <div class="dropdown-content">
         <a [routerLink]="['/chat-groups']">Groups Management</a>
         <a [routerLink]="['/channel-management']">Channel Management</a>

@@ -5,6 +5,7 @@
 <div class="main-content">
   <div class="register_form">
     <form (submit)="onRegister()" class="form-group">
+      <input type="file" (change)="onFileSelected($event)" id="file" name="profileImage" accept="image/*">
       <input type="text" name="username" [(ngModel)]="username" placeholder="Username (Starts with s/g/u)" class="form__input" required>
       <input type="text" name="firstName" [(ngModel)]="firstName" placeholder="First Name" class="form__input" required>
       <input type="text" name="lastName" [(ngModel)]="lastName" placeholder="Last Name" class="form__input" required>

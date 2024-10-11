@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'; // OnInit 인터페이스 추가
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
 import { CommonModule } from '@angular/common';
@@ -11,21 +11,23 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./nav-bar.component.css'],
   imports: [CommonModule, RouterModule]
 })
-export class NavBarComponent implements OnInit {  // OnInit 인터페이스 구현
+export class NavBarComponent implements OnInit {
   firstName: string = '';
   lastName: string = '';
+  profileImage: string = ''; // 프로필 이미지 URL 추가
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  ngOnInit(): void {  // 컴포넌트가 로드될 때 사용자 정보 로드
+  ngOnInit(): void {
     this.loadUserDetails();
   }
 
   loadUserDetails() {
-    const user = this.authService.getStoredUser(); // 저장된 사용자 정보 가져오기
+    const user = this.authService.getStoredUser();
     if (user) {
-      this.firstName = user.firstName || ''; // firstName 값 할당
-      this.lastName = user.lastName || '';   // lastName 값 할당
+      this.firstName = user.firstName || '';
+      this.lastName = user.lastName || '';
+      this.profileImage = user.imageUrl || ''; // 프로필 이미지 URL 할당
     }
   }
 
@@ -55,15 +57,18 @@ export class NavBarComponent implements OnInit {  // OnInit 인터페이스 구�
       this.router.navigate(['/login']);
     }
   }  
-
   navigateToProfile() {
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    if (user && user.id) {
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}'); // 세션 스토리지에서 유저 정보 가져오기
+    console.log('User Data:', user); // 유저 정보 로그
+  
+    // user.id가 있는지 확인
+    if (user && user._id) { // MongoDB의 ObjectId를 사용하므로 _id 필드로 체크
       this.router.navigate(['/profile']);
     } else {
-      alert('No user found. Please log in again.');
+      alert('No user found. Please log in again.!!!!');
     }
   }
+  
 
   isSuperAdmin(): boolean {
     const user = JSON.parse(sessionStorage.getItem('user') || '{}');

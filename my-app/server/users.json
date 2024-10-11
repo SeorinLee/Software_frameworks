@@ -106,7 +106,7 @@
     "id": "3",
     "username": "s222",
     "password": "9074",
-    "firstName": "super2",
+    "firstName": "super22",
     "lastName": "super2",
     "email": "s2@s.com",
     "roles": [
@@ -237,5 +237,46 @@
       }
     ],
     "dob": "2024-10-22"
+  },
+  {
+    "id": "7",
+    "username": "u4",
+    "password": "9074",
+    "firstName": "u4",
+    "lastName": "u4",
+    "email": "u4@u.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [],
+    "dob": "2024-10-11"
+  },
+  {
+    "id": "8",
+    "username": "s99",
+    "password": "9074",
+    "firstName": "s99",
+    "lastName": "s",
+    "email": "s9@com",
+    "roles": [
+      "Super Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-31",
+    "imageUrl": null
+  },
+  {
+    "id": "9",
+    "username": "g5",
+    "password": "9074",
+    "firstName": "Seorin",
+    "lastName": "Lee",
+    "email": "u5@com",
+    "roles": [
+      "Group Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-23T00:00:00.000Z",
+    "imageUrl": null
   }
 ]

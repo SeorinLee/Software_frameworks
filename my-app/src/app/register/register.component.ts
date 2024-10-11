@@ -21,17 +21,18 @@ export class RegisterComponent {
   email: string = '';
   password: string = '';
   errorMessage: string = '';
+  profileImage: File | null = null; // 프로필 이미지 필드 추가
 
   constructor(private authService: AuthService, private router: Router) {}
 
   goBack(): void {
-    this.router.navigate(['/login']);  // Navigate back to the login page
+    this.router.navigate(['/login']);  // 로그인 페이지로 돌아가기
   }
 
   onRegister(): void {
     let roles: string[] = [];
     
-    // Determine role based on username prefix
+    // 역할 결정
     if (this.username.startsWith('s')) {
       roles = ['Super Admin'];
     } else if (this.username.startsWith('g')) {
@@ -43,23 +44,24 @@ export class RegisterComponent {
       return;
     }
 
-    // Prepare the new user object
-    const newUser = {
-      username: this.username,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      dob: this.dob,
-      email: this.email,
-      password: this.password,
-      roles: roles
-    };
+    // FormData를 사용하여 파일과 데이터를 함께 전송
+    const formData = new FormData();
+    formData.append('username', this.username);
+    formData.append('firstName', this.firstName);
+    formData.append('lastName', this.lastName);
+    formData.append('dob', this.dob);
+    formData.append('email', this.email);
+    formData.append('password', this.password);
+    if (this.profileImage) {
+      formData.append('profileImage', this.profileImage); // 이미지 추가
+    }
 
-    // Call the registration service
-    this.authService.register(newUser).subscribe({
+    // 서비스 호출
+    this.authService.register(formData).subscribe({
       next: (success: boolean) => {
         if (success) {
           alert('Registration successful!');
-          this.router.navigate(['/login']);  // Redirect to login
+          this.router.navigate(['/login']);  // 로그인 페이지로 이동
         } else {
           this.errorMessage = 'Registration failed.';
         }
@@ -68,5 +70,12 @@ export class RegisterComponent {
         this.errorMessage = `Error: ${error.status} - ${error.error.message}`;
       }
     });
+  }
+
+  onFileSelected(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      this.profileImage = target.files[0]; // 선택된 파일 저장
+    }
   }
 }

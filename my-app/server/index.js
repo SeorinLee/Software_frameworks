@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer'); // Multer 가져오기
 const setupSocket = require('./sockets'); // socket.js에서 setupSocket 함수 가져오기
+const User = require('./models/user'); // User 모델 가져오기
 
 
 const app = express();
@@ -54,6 +55,7 @@ const notificationsFilePath = path.join(__dirname, 'notifications.json');
 const groupsFilePath = path.join(__dirname, 'groups.json');
 
 app.use(cors({
+  origin: '*',
   origin: 'http://localhost:4200',
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
@@ -71,11 +73,18 @@ app.post('/api/channels/:channelId/messages', upload.single('file'), async (req,
 
   let fileUrl = '';
   if (req.file) {
-    fileUrl = `http://localhost:4002/uploads/${req.file.filename}`; // 파일 URL 생성
+    fileUrl = `http://localhost:4002/uploads/${req.file.filename}`;
   }
 
-  const { user, content, userId } = JSON.parse(req.body.message); // 메시지 정보 파싱
-  const newMessage = { user, content, userId, fileUrl, fileType: req.file ? req.file.mimetype.split('/')[0] : null }; // 메시지에 파일 URL 추가
+  let messageData;
+  try {
+    messageData = JSON.parse(req.body.message);
+  } catch (error) {
+    return res.status(400).json({ message: 'Invalid message format' });
+  }
+
+  const { user, content, userId } = messageData;
+  const newMessage = { user, content, userId, fileUrl, fileType: req.file ? req.file.mimetype.split('/')[0] : null };
 
   try {
     const channel = await Channel.findOne({ id: channelId });
@@ -86,8 +95,8 @@ app.post('/api/channels/:channelId/messages', upload.single('file'), async (req,
     channel.messages.push(newMessage);
     await channel.save();
 
-    io.to(channelId).emit('receiveMessage', newMessage); // 클라이언트에 메시지 전송
-    res.status(201).json(newMessage); // 클라이언트에 메시지 응답
+    io.to(channelId).emit('receiveMessage', newMessage);
+    res.status(201).json(newMessage);
   } catch (error) {
     console.error('Error saving message:', error);
     res.status(500).json({ message: 'Failed to save message' });
@@ -131,22 +140,10 @@ app.get('/api/channels/:channelId/active-users', async (req, res) => {
   }
 });
 
-
-// // 소켓 연결 설정
-// io.on('connection', (socket) => {
-//   console.log('A user connected');
-
-//   // 클라이언트가 특정 채널에 들어올 때 해당 채널에 참여
-//   socket.on('joinChannel', (channelId) => {
-//     socket.join(channelId);
-//     console.log(`User joined channel: ${channelId}`);
-//   });
-
-//   // 연결 해제 시
-//   socket.on('disconnect', () => {
-//     console.log('User disconnected');
-//   });
-// });
+// 업로드 디렉토리가 존재하지 않는 경우 생성
+if (!fs.existsSync('uploads')) {
+  fs.mkdirSync('uploads');
+}
 
 // 파일을 로드하는 유틸리티 함수
 function loadFile(filePath) {
@@ -198,17 +195,22 @@ app.get('/api/notifications/:userId', (req, res) => {
 });
 
 // 사용자 인증 (로그인)
-app.post('/api/auth', (req, res) => {
+app.post('/api/auth',upload.single('profileImage'), async (req, res) => {
   const { email, password } = req.body;
-  
-  // email과 password로 사용자를 찾기
-  const user = users.find(u => u.email === email && u.password === password);
 
-  if (user) {
+  try {
+    // MongoDB에서 사용자를 이메일로 찾음
+    const user = await User.findOne({ email });
+    
+    // 사용자가 없거나 비밀번호가 일치하지 않는 경우
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
     const username = user.username;
-
-    // username 접두어에 따른 역할 설정
     let role = '';
+
+    // 사용자의 역할 결정
     if (username.startsWith('s')) {
       role = 'Super Admin';
     } else if (username.startsWith('g')) {
@@ -217,32 +219,41 @@ app.post('/api/auth', (req, res) => {
       role = 'User';
     }
 
-    user.roles = [role];  // 역할 업데이트
-
-    res.json(user);  // 사용자의 역할 정보 포함
-  } else {
-    res.status(401).json({ error: 'Invalid email or password' });
+    // 사용자의 정보 반환
+    res.json({ ...user.toObject(), roles: [role] });  // .toObject()로 MongoDB 문서를 일반 객체로 변환
+  } catch (error) {
+    console.error('Error during authentication:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-
 // 사용자 회원가입
-app.post('/api/register', (req, res) => {
+app.post('/api/register', upload.single('profileImage'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Profile image is required.' });
+  }
   const { username, password, firstName, lastName, email, dob } = req.body;
-
+   // 파일 URL 설정
+   let imageUrl = '';
+   if (req.file) {
+     imageUrl = `http://localhost:4002/uploads/${req.file.filename}`;
+   }
+ 
   if (!username || !password || !firstName || !lastName || !email || !dob) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  if (users.some(u => u.username === username)) {
+  // MongoDB에서 사용자 확인
+  const existingUser = await User.findOne({ username });
+  if (existingUser) {
     return res.status(400).json({ error: 'Username already exists' });
   }
 
-  if (users.some(u => u.email === email)) {
+  const existingEmail = await User.findOne({ email });
+  if (existingEmail) {
     return res.status(400).json({ error: 'Email already exists' });
   }
 
-  // 역할을 username 접두어에 따라 설정
   let roles = [];
   if (username.startsWith('s')) {
     roles = ['Super Admin'];
@@ -254,8 +265,8 @@ app.post('/api/register', (req, res) => {
     return res.status(400).json({ error: 'Username must start with "s", "g", or "u".' });
   }
 
-  const newUser = {
-    id: (users.length + 1).toString(),
+  // 새로운 사용자 MongoDB에 저장
+  const newUser = new User({
     username,
     password,
     firstName,
@@ -264,31 +275,63 @@ app.post('/api/register', (req, res) => {
     roles,
     groups: [],
     dob,
-  };
+    imageUrl,  // 프로필 이미지 URL 추가
+  });
 
-  users.push(newUser);
-  saveFile(usersFilePath, users);
-  res.status(201).json({ success: true, user: newUser });
+  try {
+    await newUser.save(); // MongoDB에 사용자 저장
+    res.status(201).json({ success: true, user: newUser });
+  } catch (error) {
+    console.error('Error saving user:', error);
+    res.status(500).json({ message: 'Failed to save user' });
+  }
 });
 
-// 사용자 정보 업데이트
-app.put('/api/users/:id', (req, res) => {
+// 사용자 프로필 조회 API
+app.get('/api/users/:id', async (req, res) => {
   const userId = req.params.id;
-  const userIndex = users.findIndex(u => u.id === userId);
 
-  if (userIndex === -1) {
-    return res.status(404).json({ error: 'User not found' });
+  try {
+    // ObjectId로 변환 후 조회
+    const user = await User.findById(mongoose.Types.ObjectId(userId));
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user); // 사용자의 정보를 반환
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ error: 'Failed to fetch user profile' });
   }
+});
 
-  // 이름 필드 업데이트
-  const { firstName, lastName, email, dob } = req.body;
-  if (firstName) users[userIndex].firstName = firstName;
-  if (lastName) users[userIndex].lastName = lastName;
-  if (email) users[userIndex].email = email;
-  if (dob) users[userIndex].dob = dob;
 
-  saveFile(usersFilePath, users);
-  res.json({ success: true, user: users[userIndex] });
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
+// 사용자 정보 업데이트
+app.put('/api/users/:id', async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    const user = await User.findById(userId); // MongoDB에서 사용자 찾기
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // 사용자 정보 업데이트
+    const { firstName, lastName, email, dob } = req.body;
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (email) user.email = email;
+    if (dob) user.dob = dob;
+
+    await user.save(); // 변경 사항 저장
+    res.json({ success: true, user }); // 응답으로 새 사용자 정보 반환
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Failed to update user' });
+  }
 });
 
 // Super Admin이 사용자 역할을 변경하는 API (알림만 보냄)
