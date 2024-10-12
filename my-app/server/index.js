@@ -94,7 +94,8 @@ app.post('/api/channels/:channelId/messages', upload.single('file'), async (req,
     fileUrl = `http://localhost:4002/uploads/${req.file.filename}`;
   }
 
-  const { content, userId } = req.body; // userId만 받도록 수정
+  const { user, content, userId } = JSON.parse(req.body.message); // 메시지 정보 파싱
+  const newMessage = { user, content, userId, fileUrl, fileType: req.file ? req.file.mimetype.split('/')[0] : null }; // 메시지에 파일 URL 추가
 
 
   let messageData;
