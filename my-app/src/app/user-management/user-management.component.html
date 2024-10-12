@@ -1,41 +1,42 @@
 <div class="user-management-container">
   <app-nav-bar></app-nav-bar>
   <div class="user-management-content">
-  <h2>User Management</h2>
-  <table *ngIf="users.length > 0">
-    <thead>
-      <tr>
-        <th>Username</th>
-        <th>Email</th>
-        <th>Roles</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let user of users">
-        <td>{{ user.username }}</td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.roles.join(', ') }}</td>
-        <td>
-          <!-- Super Admin은 드롭다운과 버튼 숨김 -->
-          <ng-container *ngIf="!user.roles.includes('Super Admin')">
-            <select [(ngModel)]="user.selectedRole">
-              <option value="" disabled selected>Select role</option>
-              <option value="User">User</option>
-              <option value="Group Admin">Group Admin</option>
-              <option value="Super Admin">Super Admin</option>
-            </select>
-            <button (click)="changeUserRole(user)">Update Role</button>
-          </ng-container>
+    <h2>User Management</h2>
+    <table *ngIf="users.length > 0">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Roles</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.roles.join(', ') }}</td>
+          <td>
+            <!-- Super Admin은 드롭다운과 버튼 숨김 -->
+            <ng-container *ngIf="!user.roles.includes('Super Admin')">
+              <select [(ngModel)]="user.selectedRole">
+                <option value="" disabled selected>Select role</option>
+                <option value="User">User</option>
+                <option value="Group Admin">Group Admin</option>
+                <option value="Super Admin">Super Admin</option>
+              </select>
+              <button (click)="changeUserRole(user)">Update Role</button>
+            </ng-container>
 
-          <!-- Group Admin 또는 User만 삭제 가능 -->
-          <button *ngIf="user.roles.includes('Group Admin') || user.roles.includes('User')" 
-                  (click)="removeUser(user)">
-            Delete
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+            <!-- Group Admin 또는 User만 삭제 가능 -->
+            <button *ngIf="user.roles.includes('Group Admin') || user.roles.includes('User')" 
+                    (click)="removeUser(user)">
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="users.length === 0">No users available.</p> <!-- 사용자 목록이 없을 때 메시지 추가 -->
+  </div>
 </div>

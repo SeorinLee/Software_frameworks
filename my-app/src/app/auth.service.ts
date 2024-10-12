@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 
@@ -9,6 +9,8 @@ import { isPlatformBrowser } from '@angular/common';
 })
 export class AuthService {
   private apiUrl = 'http://localhost:4002/api'; // API 엔드포인트 URL 기본 경로
+  private userSubject = new BehaviorSubject<any>(this.getStoredUser()); // 사용자 정보 저장
+  userProfileUpdated = this.userSubject.asObservable(); // 다른 컴포넌트에서 구독할 수 있도록 설정
 
   constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {}
 
@@ -19,7 +21,8 @@ export class AuthService {
       .pipe(
         tap(user => {
           // 로그인 성공 시 사용자 정보를 세션 스토리지에 저장
-          sessionStorage.setItem('user', JSON.stringify(user));
+          this.storeUser(user); // storeUser 메서드를 통해 사용자 저장
+          this.userSubject.next(user); // BehaviorSubject에 새로운 사용자 정보 알림
         }),
         catchError(this.handleError)  // 에러 핸들링 추가
       );
@@ -64,9 +67,19 @@ export class AuthService {
   updateProfile(user: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/users/${user._id}`, user) // 사용자 ID를 _id로 변경
       .pipe(
+        tap(updatedUser => {
+          this.updateUserProfile(updatedUser); // 프로필 업데이트 후 BehaviorSubject에 알림
+        }),
         catchError(this.handleError)
       );
   }
+    // 사용자 프로필 업데이트 메서드
+    updateUserProfile(updatedUser: any) {
+      const currentUser = this.getStoredUser();
+      const newUser = { ...currentUser, ...updatedUser };
+      this.storeUser(newUser); // 저장 메서드를 통해 업데이트
+      this.userSubject.next(newUser); // BehaviorSubject에 새로운 사용자 정보 알림
+    }
 
   // 사용자 인증 여부 확인
   isAuthenticated(): boolean {
@@ -116,6 +129,7 @@ export class AuthService {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('user');
       sessionStorage.removeItem('user');
+      this.userSubject.next(null); // 로그아웃 시 사용자 정보 초기화
     }
   }
 
@@ -140,4 +154,6 @@ export class AuthService {
     console.error('Error occurred:', errorMessage, 'Details:', error);
     return throwError(() => new Error(errorMessage));  // throwError 사용
   }
+
+
 }

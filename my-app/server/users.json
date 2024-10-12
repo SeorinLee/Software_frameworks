@@ -278,5 +278,20 @@
     "groups": [],
     "dob": "2024-10-23T00:00:00.000Z",
     "imageUrl": null
+  },
+  {
+    "username": "s3131",
+    "password": "9074",
+    "firstName": "Rin",
+    "lastName": "Lee",
+    "email": "s3@com",
+    "roles": [
+      "Super Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-16T00:00:00.000Z",
+    "imageUrl": "http://localhost:4002/uploads/1728714658166-56276343.jpg",
+    "_id": "670a17a256fc2eaa9b641e6c",
+    "__v": 0
   }
 ]

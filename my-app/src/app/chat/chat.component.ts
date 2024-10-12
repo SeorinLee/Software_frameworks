@@ -86,47 +86,56 @@ export class ChatComponent implements OnInit {
 
   sendMessage(): void {
     if (this.newMessage.trim() || this.selectedFile) {
-      const messageToSend: any = { 
-        user: this.currentUser.username, 
-        content: this.newMessage, 
-        userId: this.currentUser.id,
-        fileUrl: '',
-        fileType: this.selectedFile ? this.selectedFile.type.split('/')[0] : null 
-      };
+        const messageToSend: any = { 
+            content: this.newMessage.trim(),  // 텍스트 메시지 내용 
+            userId: this.currentUser._id,     // 현재 사용자의 MongoDB ID를 사용
+            fileUrl: '',                       // 초기 fileUrl 설정
+            fileType: this.selectedFile ? this.selectedFile.type.split('/')[0] : null 
+        };
 
-      if (this.selectedFile) {
         const formData = new FormData();
-        formData.append('file', this.selectedFile);
+        
+        // 파일이 선택된 경우에만 추가
+        if (this.selectedFile) {
+            formData.append('file', this.selectedFile);
+        }
+
+        // 메시지 데이터를 FormData에 추가
         formData.append('message', JSON.stringify(messageToSend));
 
-        this.http.post(`http://localhost:4002/api/channels/${this.channelId}/messages`, formData).subscribe({
-          next: (response: any) => {
-            messageToSend.fileUrl = response.fileUrl;
-            this.messages.push({ ...messageToSend, timestamp: new Date() });
-            this.newMessage = '';
-            this.selectedFile = null;
-            
-            this.socket.emit('receiveMessage', messageToSend);
-          },
-          error: (error) => {
-            console.error('Error sending message:', error);
-          }
-        });
-      } else {
-        this.http.post(`http://localhost:4002/api/channels/${this.channelId}/messages`, messageToSend).subscribe({
-          next: () => {
-            this.messages.push({ ...messageToSend, timestamp: new Date() });
-            this.newMessage = '';
-            
-            this.socket.emit('receiveMessage', messageToSend);
-          },
-          error: (error) => {
-            console.error('Error sending message:', error);
-          }
-        });
-      }
+        // 파일이 선택된 경우, FormData를 통해 메시지 전송
+        if (this.selectedFile) {
+            this.http.post(`http://localhost:4002/api/channels/${this.channelId}/messages`, formData).subscribe({
+                next: (response: any) => {
+                    // 서버에서 fileUrl을 받아와서 업데이트
+                    messageToSend.fileUrl = response.fileUrl;
+                    this.messages.push({ ...messageToSend, timestamp: new Date() });
+                    this.newMessage = '';
+                    this.selectedFile = null;  // 파일 선택 초기화
+                    
+                    this.socket.emit('receiveMessage', messageToSend);
+                },
+                error: (error) => {
+                    console.error('Error sending message:', error);
+                }
+            });
+        } else {
+            // 파일이 선택되지 않은 경우, 일반 메시지를 전송
+            this.http.post(`http://localhost:4002/api/channels/${this.channelId}/messages`, messageToSend).subscribe({
+                next: () => {
+                    this.messages.push({ ...messageToSend, timestamp: new Date() });
+                    this.newMessage = '';
+                    
+                    this.socket.emit('receiveMessage', messageToSend);
+                },
+                error: (error) => {
+                    console.error('Error sending message:', error);
+                }
+            });
+        }
     }
-  }
+}
+
 
   isCurrentUserMessage(message: { userId: string }): boolean {
     return message.userId === this.currentUser.id;

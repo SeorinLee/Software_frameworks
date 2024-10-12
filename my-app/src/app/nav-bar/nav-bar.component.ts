@@ -12,22 +12,26 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, RouterModule]
 })
 export class NavBarComponent implements OnInit {
-  firstName: string = '';
-  lastName: string = '';
-  profileImage: string = ''; // 프로필 이미지 URL 추가
+  user: any = null; // 사용자 정보를 null로 초기화
 
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     this.loadUserDetails();
+
+    this.authService.userProfileUpdated.subscribe((updatedUser: any) => {
+      this.user = updatedUser; // 프로필이 업데이트되면 사용자 정보 갱신
+      console.log('Updated user details:', this.user); // 업데이트된 사용자 정보 로그
+    });
   }
 
   loadUserDetails() {
-    const user = this.authService.getStoredUser();
-    if (user) {
-      this.firstName = user.firstName || '';
-      this.lastName = user.lastName || '';
-      this.profileImage = user.imageUrl || ''; // 프로필 이미지 URL 할당
+    this.user = this.authService.getStoredUser(); // 사용자 정보 가져오기
+    if (!this.user) {
+      console.warn('No user found. Redirecting to login.'); // 사용자 정보가 없을 때 경고 로그
+      this.router.navigate(['/login']); // 사용자 정보가 없으면 로그인 페이지로 리디렉션
+    } else {
+      console.log('Loaded user details:', this.user); // 로드된 사용자 정보 로그
     }
   }
 
@@ -37,10 +41,10 @@ export class NavBarComponent implements OnInit {
   }
 
   deleteAccount() {
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    if (user && user.id) {
+    const userId = this.user?._id; // null 체크 추가
+    if (userId) {
       if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-        this.authService.deleteAccount(user.id).subscribe({
+        this.authService.deleteAccount(userId).subscribe({
           next: () => {
             alert('Account deleted successfully!');
             this.authService.logout();
@@ -56,27 +60,22 @@ export class NavBarComponent implements OnInit {
       alert('No user found. Please log in again.');
       this.router.navigate(['/login']);
     }
-  }  
+  }
+
   navigateToProfile() {
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}'); // 세션 스토리지에서 유저 정보 가져오기
-    console.log('User Data:', user); // 유저 정보 로그
-  
-    // user.id가 있는지 확인
-    if (user && user._id) { // MongoDB의 ObjectId를 사용하므로 _id 필드로 체크
+    const userId = this.user?._id; // null 체크 추가
+    if (userId) {
       this.router.navigate(['/profile']);
     } else {
-      alert('No user found. Please log in again.!!!!');
+      alert('No user found. Please log in again.');
     }
   }
-  
 
   isSuperAdmin(): boolean {
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    return user && user.roles && user.roles.includes('Super Admin');
+    return this.user?.roles?.includes('Super Admin') || false; // null 체크 추가
   }
 
   isGroupAdmin(): boolean {
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    return user && user.roles && user.roles.includes('Group Admin');
+    return this.user?.roles?.includes('Group Admin') || false; // null 체크 추가
   }
 }

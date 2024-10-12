@@ -19,9 +19,13 @@ export class UserManagementComponent {
   }
 
   loadUsers() {
+    // MongoDB API 호출
     this.http.get<any[]>('http://localhost:4002/api/users').subscribe(data => {
       // 각 유저별로 selectedRole 필드를 추가
       this.users = data.map(user => ({ ...user, selectedRole: '' }));  // 모든 사용자 로드
+      console.log('Loaded users:', this.users); // 로드된 사용자 정보 로그
+    }, error => {
+      console.error('Error loading users:', error);
     });
   }
 
@@ -29,7 +33,7 @@ export class UserManagementComponent {
   removeUser(user: any) {
     if (user.roles.includes('Group Admin') || user.roles.includes('User')) {
       if (confirm(`Are you sure you want to delete ${user.username}?`)) {
-        this.http.delete(`http://localhost:4002/api/super-admin/delete/${user.id}`).subscribe(() => {
+        this.http.delete(`http://localhost:4002/api/super-admin/delete/${user._id}`).subscribe(() => {
           alert('User deleted successfully');
           this.loadUsers();  // 목록 다시 불러오기
         });
@@ -39,15 +43,21 @@ export class UserManagementComponent {
     }
   }
 
-  // 역할 변경 요청 (각 유저의 selectedRole 사용)
-  changeUserRole(user: any) {
-    if (user.selectedRole) {
-      this.http.put(`http://localhost:4002/api/super-admin/promote/${user.id}`, { newRole: user.selectedRole }).subscribe(() => {
-        alert(`Promotion request sent to the user. They need to accept it in their notifications.`);
-        this.loadUsers();
+// 역할 변경 요청 (각 유저의 selectedRole 사용)
+changeUserRole(user: any) {
+  if (user.selectedRole) {
+    this.http.put(`http://localhost:4002/api/super-admin/promote/${user._id}`, { newRole: user.selectedRole })
+      .subscribe({
+        next: () => {
+          alert('Promotion request sent to the user.');
+          this.loadUsers();  // 사용자 목록 다시 불러오기
+        },
+        error: (error) => {
+          console.error('Error changing user role:', error);
+        }
       });
-    } else {
-      alert('Please select a role.');
-    }
+  } else {
+    alert('Please select a role.');
   }
+}
 }

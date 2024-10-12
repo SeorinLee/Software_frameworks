@@ -64,6 +64,24 @@ app.use(cors({
   preflightContinue: true,  // 프리플라이트 요청 통과 허용
 }));
 
+// JSON 파일에 사용자 정보를 동기화하는 함수
+function syncUserToJson(user) {
+  if (!user || !user._id) {
+    console.error('Invalid user data:', user); // 추가된 로그
+    return; // 사용자 데이터가 유효하지 않으면 종료
+  }
+
+  const userIndex = users.findIndex(u => u._id.toString() === user._id.toString());
+  if (userIndex !== -1) {
+    // 기존 사용자 정보 업데이트
+    users[userIndex] = user.toObject(); // 업데이트된 사용자 정보를 JSON 배열에 반영
+  } else {
+    // 사용자가 JSON 파일에 존재하지 않을 경우 추가
+    users.push(user.toObject()); // 새 사용자 정보 추가
+  }
+  saveFile(usersFilePath, users); // JSON 파일에 저장
+}
+
 // 정적 파일 제공 (업로드된 이미지 접근)
  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -76,17 +94,31 @@ app.post('/api/channels/:channelId/messages', upload.single('file'), async (req,
     fileUrl = `http://localhost:4002/uploads/${req.file.filename}`;
   }
 
+  const { content, userId } = req.body; // userId만 받도록 수정
+
+
   let messageData;
   try {
-    messageData = JSON.parse(req.body.message);
+      messageData = JSON.parse(req.body.message); // 메시지 데이터 파싱
   } catch (error) {
-    return res.status(400).json({ message: 'Invalid message format' });
+      return res.status(400).json({ message: 'Invalid message format' });
   }
 
-  const { user, content, userId } = messageData;
-  const newMessage = { user, content, userId, fileUrl, fileType: req.file ? req.file.mimetype.split('/')[0] : null };
-
   try {
+    // MongoDB에서 유저 정보를 찾기
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const newMessage = {
+      user: user.username, // MongoDB에서 가져온 유저 정보 사용
+      content,
+      userId: user._id, // MongoDB에서 가져온 userId 사용
+      fileUrl,
+      fileType: req.file ? req.file.mimetype.split('/')[0] : null
+    };
+
     const channel = await Channel.findOne({ id: channelId });
     if (!channel) {
       return res.status(404).json({ message: 'Channel not found' });
@@ -102,8 +134,6 @@ app.post('/api/channels/:channelId/messages', upload.single('file'), async (req,
     res.status(500).json({ message: 'Failed to save message' });
   }
 });
-
-
 
 // 특정 채널의 메시지 가져오기
 app.get('/api/channels/:channelId/messages', async (req, res) => {
@@ -179,8 +209,14 @@ app.get('/', (req, res) => {
 });
 
 // 사용자 목록 조회
-app.get('/api/users', (req, res) => {
-  res.json(users);
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find(); // MongoDB에서 모든 사용자 조회
+    res.json(users); // 조회된 사용자 정보를 반환
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
 });
 
 // 사용자 알림 조회
@@ -201,9 +237,15 @@ app.post('/api/auth',upload.single('profileImage'), async (req, res) => {
   try {
     // MongoDB에서 사용자를 이메일로 찾음
     const user = await User.findOne({ email });
+
+        // 추가적인 오류 처리를 위해
+    if (!user) {
+      console.error('User not found with email:', email); // 추가된 로그
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
     
-    // 사용자가 없거나 비밀번호가 일치하지 않는 경우
-    if (!user || user.password !== password) {
+   // 비밀번호 확인
+    if (user.password !== password) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
@@ -218,6 +260,13 @@ app.post('/api/auth',upload.single('profileImage'), async (req, res) => {
     } else if (username.startsWith('u')) {
       role = 'User';
     }
+
+       user.roles = [role];  // 역할 업데이트
+
+  //  // JSON 파일에 사용자 정보 업데이트 전에 유효성 검사
+  //  if (user && user._id) {
+  //   syncUserToJson(user); // 사용자 정보를 JSON 파일에 동기화
+  // }
 
     // 사용자의 정보 반환
     res.json({ ...user.toObject(), roles: [role] });  // .toObject()로 MongoDB 문서를 일반 객체로 변환
@@ -280,6 +329,8 @@ app.post('/api/register', upload.single('profileImage'), async (req, res) => {
 
   try {
     await newUser.save(); // MongoDB에 사용자 저장
+    users.push(newUser.toObject()); // JSON 파일에 저장할 데이터를 배열에 추가
+    saveFile(usersFilePath, users); // JSON 파일에 저장
     res.status(201).json({ success: true, user: newUser });
   } catch (error) {
     console.error('Error saving user:', error);
@@ -309,12 +360,12 @@ function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
-// 사용자 정보 업데이트
-app.put('/api/users/:id', async (req, res) => {
+// 사용자 정보 업데이트 API
+app.put('/api/users/:id', upload.single('profileImage'), async (req, res) => {
   const userId = req.params.id;
 
   try {
-    const user = await User.findById(userId); // MongoDB에서 사용자 찾기
+    const user = await User.findById(new mongoose.Types.ObjectId(userId)); // MongoDB에서 사용자 찾기
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -326,7 +377,12 @@ app.put('/api/users/:id', async (req, res) => {
     if (email) user.email = email;
     if (dob) user.dob = dob;
 
-    await user.save(); // 변경 사항 저장
+    // 프로필 이미지 URL 업데이트
+    if (req.file) {
+      user.imageUrl = `http://localhost:4002/uploads/${req.file.filename}`;
+    }
+
+    await user.save(); // MongoDB에 변경 사항 저장
     res.json({ success: true, user }); // 응답으로 새 사용자 정보 반환
   } catch (error) {
     console.error('Error updating user:', error);
@@ -334,29 +390,43 @@ app.put('/api/users/:id', async (req, res) => {
   }
 });
 
-// Super Admin이 사용자 역할을 변경하는 API (알림만 보냄)
-app.put('/api/super-admin/promote/:id', (req, res) => {
+
+// 사용자 역할 변경 API
+app.put('/api/super-admin/promote/:id', async (req, res) => {
   const userId = req.params.id;
-  const newRole = req.body.newRole;  // newRole을 req.body에서 가져옵니다.
-  const userIndex = users.findIndex(u => u.id === userId);
+  const newRole = req.body.newRole;
 
-  if (userIndex === -1) {
-    console.error(`User with ID ${userId} not found`);
-    return res.status(404).json({ error: 'User not found' });
+  // ID를 ObjectId로 변환
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ error: 'Invalid user ID' });
   }
 
-  if (!['Super Admin', 'Group Admin', 'User'].includes(newRole)) {
-    return res.status(400).json({ error: 'Invalid role specified' });
+  try {
+    // MongoDB에서 사용자 찾기
+    const user = await User.findById(mongoose.Types.ObjectId(userId));
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // 역할 업데이트
+    user.roles = [newRole];
+    await user.save();
+
+    // JSON 파일 동기화: 역할 변경 후 JSON 파일 업데이트
+    syncUserToJson(user); // 사용자 정보를 JSON 파일에 동기화
+
+    // 알림 추가 (역할 변경 후 알림을 users.json에 추가)
+    addNotification(userId, `Your role has been changed to ${newRole}. Please accept the promotion in your notifications.`);
+
+    res.json({ success: true, message: 'User role updated successfully' });
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    res.status(500).json({ error: 'Failed to update user role' });
   }
-
-  // 역할 변경 알림을 보냄
-  addNotification(userId, `Your role has been changed to ${newRole}. Please accept the promotion in your notifications.`);
-
-  res.json({ success: true, message: `Promotion request sent to user ${users[userIndex].username}` });
 });
 
 
-app.post('/api/accept-promotion/:id', (req, res) => {
+app.post('/api/accept-promotion/:id', async (req, res) => {
   const userId = req.params.id;
   let { newRole } = req.body;
 
@@ -365,49 +435,44 @@ app.post('/api/accept-promotion/:id', (req, res) => {
   // 공백 제거 및 소문자로 변환하여 처리
   newRole = newRole.trim().toLowerCase();
 
-  // 사용자 찾기
-  const userIndex = users.findIndex(u => u.id === userId);
-  
-  if (userIndex === -1) {
-    return res.status(404).json({ error: 'User not found' });
+  try {
+    // MongoDB에서 사용자 찾기
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // 소문자로 변환된 newRole과 서버에서 허용하는 역할을 비교
+    const roleMapping = {
+      'super admin': 'Super Admin',
+      'group admin': 'Group Admin',
+      'user': 'User'
+    };
+
+    if (!roleMapping[newRole]) {
+      console.error('Invalid role specified on server:', newRole);  // 디버깅 로그
+      return res.status(400).json({ error: 'Invalid role specified' });
+    }
+
+    const newRoleFormatted = roleMapping[newRole];  // 원래 대문자로 포맷팅된 역할
+
+    // 역할 업데이트
+    user.roles = [newRoleFormatted];  // 역할을 새롭게 설정
+    await user.save();  // MongoDB에 변경 사항 저장
+
+    // JSON 파일 동기화: 역할 변경 후 JSON 파일 업데이트
+    syncUserToJson(user); // 사용자 정보를 JSON 파일에 동기화
+
+    // 해당 사용자 알림 삭제 (JSON 파일 사용)
+    notifications[userId] = [];
+    saveFile(notificationsFilePath, notifications);
+
+    res.json({ success: true, newUsername: user.username, newRole: user.roles[0] });
+  } catch (error) {
+    console.error('Error accepting promotion:', error);
+    res.status(500).json({ error: 'Failed to accept promotion' });
   }
-
-  // 소문자로 변환된 newRole과 서버에서 허용하는 역할을 비교
-  const roleMapping = {
-    'super admin': 'Super Admin',
-    'group admin': 'Group Admin',
-    'user': 'User'
-  };
-
-  if (!roleMapping[newRole]) {
-    console.error('Invalid role specified on server:', newRole);  // 디버깅 로그
-    return res.status(400).json({ error: 'Invalid role specified' });
-  }
-
-  const rolePrefixMapping = {
-    'Super Admin': 's',
-    'Group Admin': 'g',
-    'User': 'u'
-  };
-
-  const user = users[userIndex];
-  const newRoleFormatted = roleMapping[newRole];  // 원래 대문자로 포맷팅된 역할
-  const rolePrefix = rolePrefixMapping[newRoleFormatted];
-
-  // 기존 접두어(s, g, u) 제거 후 새로운 접두어 추가
-  user.username = `${rolePrefix}${user.username.replace(/^(s|g|u)/, '')}`;
-
-  // 역할 업데이트
-  user.roles = [newRoleFormatted];  // 역할을 새롭게 설정
-
-  // 변경된 사용자 데이터 저장
-  saveFile(usersFilePath, users);
-
-  // 해당 사용자 알림 삭제
-  notifications[userId] = [];
-  saveFile(notificationsFilePath, notifications);
-
-  res.json({ success: true, newUsername: user.username, newRole: user.roles[0] });
 });
 
 
@@ -636,18 +701,24 @@ app.delete('/api/users/delete/:id', (req, res) => {
 
 
 // Super Admin이 사용자 삭제
-app.delete('/api/super-admin/delete/:id', (req, res) => {
+app.delete('/api/super-admin/delete/:id', async (req, res) => {
   const userId = req.params.id;
-  const userIndex = users.findIndex(u => u.id === userId);
 
-  if (userIndex === -1) {
-    return res.status(404).json({ error: 'User not found' });
+  try {
+    // MongoDB에서 사용자 삭제
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
   }
-
-  users.splice(userIndex, 1);
-  saveFile(usersFilePath, users);
-  res.json({ success: true });
 });
+
 
 // 그룹 멤버 조회 API
 app.get('/api/groups/:groupId/members', (req, res) => {
