@@ -293,5 +293,20 @@
     "imageUrl": "http://localhost:4002/uploads/1728714658166-56276343.jpg",
     "_id": "670a17a256fc2eaa9b641e6c",
     "__v": 0
+  },
+  {
+    "username": "g3423",
+    "password": "9074",
+    "firstName": "Seorin",
+    "lastName": "Lee",
+    "email": "g90@g.com",
+    "roles": [
+      "Group Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-22T00:00:00.000Z",
+    "imageUrl": "http://localhost:4002/uploads/1728744420691-15304449.png",
+    "_id": "670a8be4c260a79b100081a3",
+    "__v": 0
   }
 ]
