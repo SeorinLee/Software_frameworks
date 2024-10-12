@@ -42,5 +42,70 @@
       }
     ],
     "dob": "2024-09-05"
+  },
+  {
+    "id": "4",
+    "username": "u123",
+    "password": "9074",
+    "firstName": "Seorin",
+    "lastName": "Lee",
+    "email": "u4443@u.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [],
+    "dob": "2024-10-09"
+  },
+  {
+    "id": "5",
+    "username": "u23434",
+    "password": "9074",
+    "firstName": "Seorin",
+    "lastName": "Lee",
+    "email": "u@u.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [],
+    "dob": "2024-10-25"
+  },
+  {
+    "id": "6",
+    "username": "g2343",
+    "password": "$2b$10$5TqATtms9xelTepQLvYON..ZQsIkBMewjbQvdtM7kwGG2toTID20m",
+    "firstName": "Rin",
+    "lastName": "Lee",
+    "email": "g@1.com",
+    "roles": [
+      "Group Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-24"
+  },
+  {
+    "id": "7",
+    "username": "u234232323",
+    "password": "$2b$10$Pg8yRVtJicRKUoomgb7umezjdf6UMNiGtF4XYLeA6NDXZfrDDnpzC",
+    "firstName": "Seo",
+    "lastName": "Lee",
+    "email": "u@3.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [],
+    "dob": "2024-10-10"
+  },
+  {
+    "id": "8",
+    "username": "s234234234",
+    "password": "$2b$10$D2qqC/DN20vfSMcQGgtFLepk/LVPhx9WFDcagM4tbYaDPlkTxPEXG",
+    "firstName": "Rin",
+    "lastName": "Lee",
+    "email": "s@3.com",
+    "roles": [
+      "Super Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-23"
   }
 ]

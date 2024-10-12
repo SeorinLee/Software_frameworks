@@ -5,21 +5,36 @@ const path = require('path');
 const fs = require('fs');
 const app = express();
 const port = 4002;
+const mongoose = require('mongoose');
+const User = require('./models/User');  // 모델 불러오기
+const bcrypt = require('bcrypt');
+const multer = require('multer');
+
 
 app.use(bodyParser.json());
 app.use(cors());
 app.use(express.json());
+// 정적 파일 제공 (업로드된 이미지 접근)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const usersFilePath = path.join(__dirname, 'users.json');
 const notificationsFilePath = path.join(__dirname, 'notifications.json');
 const groupsFilePath = path.join(__dirname, 'groups.json');
 const channelsFilePath = path.join(__dirname, 'channels.json');
 
+
 // CORS 설정
 app.use(cors({
   origin: 'http://localhost:4200',  // Angular 애플리케이션이 실행되는 도메인
   credentials: true,  // 쿠키를 포함한 자격 증명을 허용
 }));
+
+// MongoDB 연결 설정
+const mongoURI = 'mongodb://localhost:27017/chatApp'; // MongoDB URL을 'chatApp' 데이터베이스로 변경
+mongoose.connect(mongoURI)
+  .then(() => console.log('MongoDB connected to chatApp...'))
+  .catch(err => console.log(err));
+
 
 // 파일을 로드하는 유틸리티 함수
 function loadFile(filePath) {
@@ -35,10 +50,22 @@ function saveFile(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
+
 let users = loadFile(usersFilePath);
 let notifications = loadFile(notificationsFilePath);
 let groups = loadFile(groupsFilePath);
 let channels = loadFile(channelsFilePath);
+
+// Multer 설정 (이미지 저장 경로 및 파일 이름 설정)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');  // 'uploads' 폴더에 저장
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));  // 현재 시간을 기준으로 파일명 생성
+  }
+});
+const upload = multer({ storage: storage });
 
 // 사용자 알림 추가 함수
 function addNotification(userId, message) {
@@ -54,10 +81,16 @@ app.get('/', (req, res) => {
   res.send('Server is running!');
 });
 
-// 사용자 목록 조회
-app.get('/api/users', (req, res) => {
-  res.json(users);
+// 모든 사용자 목록 조회 (Super Admin 전용)
+app.get('/api/users',  async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch users from MongoDB' });
+  }
 });
+
 
 // 특정 사용자 알림 조회
 app.get('/api/notifications/:id', (req, res) => {
@@ -71,17 +104,26 @@ app.get('/api/notifications/:id', (req, res) => {
   }
 });
 
+
 // 사용자 인증 (로그인)
-app.post('/api/auth', (req, res) => {
+app.post('/api/auth', async (req, res) => {
   const { email, password } = req.body;
-  
-  // email과 password로 사용자를 찾기
-  const user = users.find(u => u.email === email && u.password === password);
 
-  if (user) {
+  try {
+    // MongoDB에서 사용자 조회
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // 비밀번호 비교
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
     const username = user.username;
-
-    // username 접두어에 따른 역할 설정
     let role = '';
     if (username.startsWith('s')) {
       role = 'Super Admin';
@@ -91,99 +133,128 @@ app.post('/api/auth', (req, res) => {
       role = 'User';
     }
 
-    user.roles = [role];  // 역할 업데이트
+    user.roles = [role];
 
-    res.json(user);  // 사용자의 역할 정보 포함
-  } else {
-    res.status(401).json({ error: 'Invalid email or password' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: 'Login failed' });
   }
 });
 
 
 // 사용자 회원가입
-app.post('/api/register', (req, res) => {
+app.post('/api/register', async (req, res) => {
   const { username, password, firstName, lastName, email, dob } = req.body;
 
   if (!username || !password || !firstName || !lastName || !email || !dob) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  if (users.some(u => u.username === username)) {
-    return res.status(400).json({ error: 'Username already exists' });
+  try {
+    // 중복 이메일 확인 (MongoDB)
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    // 역할 설정
+    let roles = [];
+    if (username.startsWith('s')) {
+      roles = ['Super Admin'];
+    } else if (username.startsWith('g')) {
+      roles = ['Group Admin'];
+    } else if (username.startsWith('u')) {
+      roles = ['User'];
+    } else {
+      return res.status(400).json({ error: 'Username must start with "s", "g", or "u".' });
+    }
+
+    // 비밀번호 암호화
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // MongoDB에 저장할 새 유저 생성
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      email,
+      roles,
+      dob
+    });
+
+    // MongoDB에 유저 저장
+    await newUser.save();
+
+    // JSON 파일에 저장할 유저 데이터
+    const jsonUser = {
+      id: (users.length + 1).toString(),  // ID를 JSON의 기존 유저 길이로 설정
+      username,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      email,
+      roles,
+      groups: [],
+      dob
+    };
+
+    // JSON 파일에 저장
+    users.push(jsonUser);
+    saveFile(usersFilePath, users);  // 기존의 saveFile 함수로 JSON 파일에 저장
+
+    res.status(201).json({ success: true, user: jsonUser });
+  } catch (err) {
+    res.status(500).json({ error: 'Registration failed' });
   }
-
-  if (users.some(u => u.email === email)) {
-    return res.status(400).json({ error: 'Email already exists' });
-  }
-
-  // 역할을 username 접두어에 따라 설정
-  let roles = [];
-  if (username.startsWith('s')) {
-    roles = ['Super Admin'];
-  } else if (username.startsWith('g')) {
-    roles = ['Group Admin'];
-  } else if (username.startsWith('u')) {
-    roles = ['User'];
-  } else {
-    return res.status(400).json({ error: 'Username must start with "s", "g", or "u".' });
-  }
-
-  const newUser = {
-    id: (users.length + 1).toString(),
-    username,
-    password,
-    firstName,
-    lastName,
-    email,
-    roles,
-    groups: [],
-    dob,
-  };
-
-  users.push(newUser);
-  saveFile(usersFilePath, users);
-  res.status(201).json({ success: true, user: newUser });
 });
 
-// 사용자 정보 업데이트
-app.put('/api/users/:id', (req, res) => {
+
+// 사용자 정보 요청 (프로필 데이터)
+app.get('/api/users/:id', async (req, res) => {
   const userId = req.params.id;
-  const userIndex = users.findIndex(u => u.id === userId);
 
-  if (userIndex === -1) {
-    return res.status(404).json({ error: 'User not found' });
+  try {
+    const user = await User.findById(new mongoose.Types.ObjectId(userId)); // MongoDB에서 사용자 찾기
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch user data' });
   }
-
-  // 이름 필드 업데이트
-  const { firstName, lastName, email, dob } = req.body;
-  if (firstName) users[userIndex].firstName = firstName;
-  if (lastName) users[userIndex].lastName = lastName;
-  if (email) users[userIndex].email = email;
-  if (dob) users[userIndex].dob = dob;
-
-  saveFile(usersFilePath, users);
-  res.json({ success: true, user: users[userIndex] });
 });
 
-// Super Admin이 사용자 역할을 변경하는 API (알림만 보냄)
-app.put('/api/super-admin/promote/:id', (req, res) => {
+
+app.put('/api/users/:id/profile', upload.single('profilePicture'), async (req, res) => {
   const userId = req.params.id;
-  const newRole = req.body.newRole;  // newRole을 req.body에서 가져옵니다.
-  const userIndex = users.findIndex(u => u.id === userId);
 
-  if (userIndex === -1) {
-    console.error(`User with ID ${userId} not found`);
-    return res.status(404).json({ error: 'User not found' });
+  try {
+    // 사용자 찾기
+    const user = await User.findById(new mongoose.Types.ObjectId(userId)); // MongoDB에서 사용자 찾기
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // 이미지가 있으면 프로필 사진 URL 저장
+    if (req.file) {
+      user.profilePictureUrl = `/uploads/${req.file.filename}`;  // 파일 경로 저장
+    }
+
+    // 다른 사용자 정보 업데이트
+    const updatedUser = JSON.parse(req.body.userData);
+    user.firstName = updatedUser.firstName || user.firstName;
+    user.lastName = updatedUser.lastName || user.lastName;
+    user.email = updatedUser.email || user.email;
+
+    await user.save();  // MongoDB에 저장
+
+    res.json({ profilePictureUrl: user.profilePictureUrl });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update profile' });
   }
-
-  if (!['Super Admin', 'Group Admin', 'User'].includes(newRole)) {
-    return res.status(400).json({ error: 'Invalid role specified' });
-  }
-
-  // 역할 변경 알림을 보냄
-  addNotification(userId, `Your role has been changed to ${newRole}. Please accept the promotion in your notifications.`);
-
-  res.json({ success: true, message: `Promotion request sent to user ${users[userIndex].username}` });
 });
 
 
@@ -431,19 +502,31 @@ app.delete('/api/users/delete/:id', (req, res) => {
 });
 
 
-// Super Admin이 사용자 삭제
-app.delete('/api/super-admin/delete/:id', (req, res) => {
+// 사용자 삭제
+app.delete('/api/super-admin/delete/:id', async (req, res) => {
   const userId = req.params.id;
-  const userIndex = users.findIndex(u => u.id === userId);
 
-  if (userIndex === -1) {
-    return res.status(404).json({ error: 'User not found' });
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      console.log(`User with ID ${userId} not found.`);
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Super Admin 자신을 삭제하는 것을 방지
+    if (user.roles.includes('Super Admin')) {
+      console.log(`Attempted to delete Super Admin: ${user.username}`);
+      return res.status(403).json({ error: 'Super Admin cannot delete themselves.' });
+    }
+
+    await User.findByIdAndDelete(userId);
+    res.json({ success: true, message: 'User deleted successfully.' });
+  } catch (err) {
+    console.error(`Failed to delete user with ID ${userId}:`, err);
+    res.status(500).json({ error: 'Failed to delete user.' });
   }
-
-  users.splice(userIndex, 1);
-  saveFile(usersFilePath, users);
-  res.json({ success: true });
 });
+
 
 // 그룹 멤버 조회 API
 app.get('/api/groups/:groupId/members', (req, res) => {
