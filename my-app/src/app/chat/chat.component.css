@@ -1,0 +1,26 @@
+.my-message {
+  text-align: right; /* 본인 메시지 오른쪽 정렬 */
+  background-color: #d1f7c4; /* 본인 메시지 배경색 */
+  padding: 10px;
+  border-radius: 10px;
+  margin: 5px 0;
+  max-width: 80%; /* 메시지 최대 너비 설정 */
+  word-wrap: break-word; /* 긴 단어가 줄 바꿈 되도록 설정 */
+}
+
+.other-message {
+  text-align: left; /* 다른 사용자 메시지 왼쪽 정렬 */
+  background-color: #f7d1d1; /* 다른 사용자 메시지 배경색 */
+  padding: 10px;
+  border-radius: 10px;
+  margin: 5px 0;
+  max-width: 80%; /* 메시지 최대 너비 설정 */
+  word-wrap: break-word; /* 긴 단어가 줄 바꿈 되도록 설정 */
+}
+
+.system-message {
+  text-align: center;  /* 중앙 정렬 */
+  font-style: italic;  /* 기울임체 */
+  color: #6c757d;      /* 회색 */
+  margin: 10px 0;     /* 위아래 여백 */
+}
