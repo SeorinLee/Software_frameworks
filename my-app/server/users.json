@@ -107,5 +107,18 @@
     ],
     "groups": [],
     "dob": "2024-10-23"
+  },
+  {
+    "id": "9",
+    "username": "g1293902",
+    "password": "$2b$10$2G4liMxV02XF0eN1X.ACc.2nzWFdBbufQ8WvB/w2O3OmGSVuVb28C",
+    "firstName": "Seorin",
+    "lastName": "Lee",
+    "email": "g@3.com",
+    "roles": [
+      "Group Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-17"
   }
 ]

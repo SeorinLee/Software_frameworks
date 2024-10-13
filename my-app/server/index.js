@@ -363,6 +363,27 @@ app.post('/api/groups', async (req, res) => {
 });
 
 
+// 그룹 삭제
+app.delete('/api/groups/:id', (req, res) => {
+  const groupId = req.params.id;
+  const user = JSON.parse(req.headers.user); // 사용자 정보는 헤더에서 받아옴
+  const groupIndex = groups.findIndex(group => group.id === groupId);
+
+  if (groupIndex === -1) {
+    return res.status(404).json({ error: 'Group not found' });
+  }
+
+  const group = groups[groupIndex];
+  if (user.roles.includes('Group Admin') && group.creator !== user.username) {
+    return res.status(403).json({ error: 'You do not have permission to delete this group.' });
+  }
+
+  groups.splice(groupIndex, 1);
+  saveFile(groupsFilePath, groups);
+
+  res.status(200).json({ message: 'Group deleted successfully' });
+});
+
 // 그룹 조회
 app.get('/api/groups', (req, res) => {
   const user = JSON.parse(req.headers.user);
@@ -501,8 +522,8 @@ app.delete('/api/groups/:groupId/channels/:channelId', async (req, res) => {
   try {
     // Super Admin이거나, Group Admin이면서 자신이 생성한 채널인 경우에만 삭제 가능
     const query = user.roles.includes('Super Admin') 
-      ? { id: channelId, groupId } 
-      : { id: channelId, groupId, creator: user.username };  // 그룹 ID, 채널 ID, 생성자가 본인일 경우만
+      ? { _id: channelId, groupId }  // MongoDB는 _id를 사용하므로 id 대신 _id로 변경
+      : { _id: channelId, groupId, creator: user.username };  // 그룹 ID와 생성자가 본인인 경우만 삭제 가능
 
     const channel = await Channel.findOneAndDelete(query);
     if (!channel) {
@@ -515,6 +536,7 @@ app.delete('/api/groups/:groupId/channels/:channelId', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete channel' });
   }
 });
+
 
 
 // Super Admin이 사용자 역할을 변경하는 API (알림 전송 포함)
