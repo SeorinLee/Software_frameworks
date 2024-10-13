@@ -40,5 +40,12 @@
     "description": "ㄴㅁㅇㅁㄴ",
     "groupId": "1",
     "creator": "s1015"
+  },
+  {
+    "id": "g test1",
+    "name": "test1",
+    "description": ".",
+    "groupId": "gtest1",
+    "creator": "g239439"
   }
 ]

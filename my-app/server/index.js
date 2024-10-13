@@ -7,6 +7,7 @@ const app = express();
 const port = 4002;
 const mongoose = require('mongoose');
 const User = require('./models/User');  // 모델 불러오기
+const Channel = require('./models/Channel');  // Channel 모델 추가
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 
@@ -258,103 +259,109 @@ app.put('/api/users/:id/profile', upload.single('profilePicture'), async (req, r
 });
 
 
-app.post('/api/accept-promotion/:id', (req, res) => {
+// 사용자 역할 변경을 수락하는 API
+app.post('/api/accept-promotion/:id', async (req, res) => {
   const userId = req.params.id;
   let { newRole } = req.body;
 
-  console.log('Received newRole:', `"${newRole}"`);  // 디버깅용 로그 추가
-  
+  console.log('Received newRole:', `"${newRole}"`); // 디버깅용 로그
+
   // 공백 제거 및 소문자로 변환하여 처리
   newRole = newRole.trim().toLowerCase();
 
-  // 사용자 찾기
-  const userIndex = users.findIndex(u => u.id === userId);
-  
-  if (userIndex === -1) {
-    return res.status(404).json({ error: 'User not found' });
+  // MongoDB에서 사용자 찾기
+  try {
+    const user = await User.findById(userId); // MongoDB에서 사용자 찾기
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // 역할 매핑
+    const roleMapping = {
+      'super admin': 'Super Admin',
+      'group admin': 'Group Admin',
+      'user': 'User'
+    };
+
+    if (!roleMapping[newRole]) {
+      console.error('Invalid role specified on server:', newRole); // 디버깅 로그
+      return res.status(400).json({ error: 'Invalid role specified' });
+    }
+
+    const rolePrefixMapping = {
+      'Super Admin': 's',
+      'Group Admin': 'g',
+      'User': 'u'
+    };
+
+    const newRoleFormatted = roleMapping[newRole]; // 대문자로 포맷팅된 역할
+    const rolePrefix = rolePrefixMapping[newRoleFormatted];
+
+    // MongoDB에서 사용자 역할 업데이트
+    user.roles = [newRoleFormatted];
+    user.username = `${rolePrefix}${user.username.replace(/^(s|g|u)/, '')}`;
+
+    // MongoDB에 저장
+    await user.save();
+
+    // JSON 파일에 반영
+    const userIndexInJson = users.findIndex(u => u._id === userId);
+    if (userIndexInJson !== -1) {
+      users[userIndexInJson].roles = [newRoleFormatted];
+      users[userIndexInJson].username = user.username;
+      saveFile(usersFilePath, users); // JSON 파일 저장
+    }
+
+    // 알림에서 해당 유저 알림 삭제
+    notifications[userId] = [];
+    saveFile(notificationsFilePath, notifications); // JSON 파일에 알림 저장
+
+    res.json({ success: true, newUsername: user.username, newRole: user.roles[0] });
+  } catch (err) {
+    console.error(`Error updating user role for ID ${userId}:`, err);
+    res.status(500).json({ error: 'Failed to update user role' });
   }
-
-  // 소문자로 변환된 newRole과 서버에서 허용하는 역할을 비교
-  const roleMapping = {
-    'super admin': 'Super Admin',
-    'group admin': 'Group Admin',
-    'user': 'User'
-  };
-
-  if (!roleMapping[newRole]) {
-    console.error('Invalid role specified on server:', newRole);  // 디버깅 로그
-    return res.status(400).json({ error: 'Invalid role specified' });
-  }
-
-  const rolePrefixMapping = {
-    'Super Admin': 's',
-    'Group Admin': 'g',
-    'User': 'u'
-  };
-
-  const user = users[userIndex];
-  const newRoleFormatted = roleMapping[newRole];  // 원래 대문자로 포맷팅된 역할
-  const rolePrefix = rolePrefixMapping[newRoleFormatted];
-
-  // 기존 접두어(s, g, u) 제거 후 새로운 접두어 추가
-  user.username = `${rolePrefix}${user.username.replace(/^(s|g|u)/, '')}`;
-
-  // 역할 업데이트
-  user.roles = [newRoleFormatted];  // 역할을 새롭게 설정
-
-  // 변경된 사용자 데이터 저장
-  saveFile(usersFilePath, users);
-
-  // 해당 사용자 알림 삭제
-  notifications[userId] = [];
-  saveFile(notificationsFilePath, notifications);
-
-  res.json({ success: true, newUsername: user.username, newRole: user.roles[0] });
 });
+
 
 
 // 그룹 생성
-app.post('/api/groups', (req, res) => {
-  const { id, name, description, creator } = req.body;
+app.post('/api/groups', async (req, res) => {
+  const { name, description, creator } = req.body; // Group ID를 더 이상 받지 않음
 
-  if (!id || !name || !description || !creator) {
+  if (!name || !description || !creator) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  if (groups.some(group => group.id === id)) {
-    return res.status(400).json({ error: 'Group ID already exists' });
+  try {
+    // MongoDB에서 생성자 찾기
+    const creatorUser = await User.findOne({ username: creator });
+
+    if (!creatorUser) {
+      return res.status(404).json({ error: 'Creator not found' });
+    }
+
+    const creatorName = `${creatorUser.firstName} ${creatorUser.lastName}`;
+
+    // Group ID를 MongoDB ObjectId로 자동 생성
+    const newGroup = {
+      id: new mongoose.Types.ObjectId().toString(), // 자동 생성된 ObjectId 사용
+      name,
+      description,
+      creator,
+      creatorName,
+    };
+
+    groups.push(newGroup);
+    saveFile(groupsFilePath, groups);
+
+    res.status(201).json(newGroup);
+  } catch (error) {
+    console.error('Error creating group:', error);
+    res.status(500).json({ error: 'An error occurred while creating the group.' });
   }
-
-  const creatorUser = users.find(u => u.username === creator);
-  const creatorName = creatorUser ? `${creatorUser.firstName} ${creatorUser.lastName}` : 'Unknown';
-
-  const newGroup = { id, name, description, creator, creatorName };
-  groups.push(newGroup);
-  saveFile(groupsFilePath, groups);
-
-  res.status(201).json(newGroup);
 });
 
-// 그룹 삭제
-app.delete('/api/groups/:id', (req, res) => {
-  const groupId = req.params.id;
-  const user = JSON.parse(req.headers.user); // 사용자 정보는 헤더에서 받아옴
-  const groupIndex = groups.findIndex(group => group.id === groupId);
-
-  if (groupIndex === -1) {
-    return res.status(404).json({ error: 'Group not found' });
-  }
-
-  const group = groups[groupIndex];
-  if (user.roles.includes('Group Admin') && group.creator !== user.username) {
-    return res.status(403).json({ error: 'You do not have permission to delete this group.' });
-  }
-
-  groups.splice(groupIndex, 1);
-  saveFile(groupsFilePath, groups);
-
-  res.status(200).json({ message: 'Group deleted successfully' });
-});
 
 // 그룹 조회
 app.get('/api/groups', (req, res) => {
@@ -394,23 +401,28 @@ app.get('/api/users/:id/groups', (req, res) => {
 
 
 // 채널 생성
-app.post('/api/groups/:groupId/channels', (req, res) => {
+app.post('/api/groups/:groupId/channels', async (req, res) => {
   const { groupId } = req.params;
-  const { id, name, description, creator } = req.body;
+  const { name, description, creator } = req.body;
 
-  if (!id || !name || !description || !creator) {
+  if (!name || !description || !creator) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  if (channels.some(channel => channel.id === id)) {
-    return res.status(400).json({ error: 'Channel ID already exists' });
+  try {
+    // 새로운 채널을 MongoDB에 저장
+    const newChannel = new Channel({
+      name,
+      description,
+      groupId,
+      creator,
+    });
+
+    await newChannel.save();
+    res.status(201).json(newChannel);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create channel' });
   }
-
-  const newChannel = { id, name, description, groupId, creator };
-  channels.push(newChannel);
-  saveFile(channelsFilePath, channels);
-
-  res.status(201).json(newChannel);
 });
 
 // 그룹 삭제
@@ -440,21 +452,8 @@ app.delete('/api/groups/:id', (req, res) => {
 
 
 // 그룹 내 채널 조회
-app.get('/api/groups/:groupId/channels', (req, res) => {
+app.get('/api/groups/:groupId/channels', async (req, res) => {
   const { groupId } = req.params;
-
-  // 해당 그룹의 채널을 필터링
-  const groupChannels = channels.filter(channel => channel.groupId === groupId);
-
-  // 채널이 없을 경우 빈 배열을 반환
-  res.json(groupChannels);
-});
-
-// 채널 삭제
-app.delete('/api/groups/:groupId/channels/:channelId', (req, res) => {
-  const { groupId, channelId } = req.params;
-
-  // 사용자 정보를 헤더에서 가져옴. 헤더가 비어 있으면 오류 반환.
   const userHeader = req.headers.user;
   
   if (!userHeader) {
@@ -463,48 +462,116 @@ app.delete('/api/groups/:groupId/channels/:channelId', (req, res) => {
 
   let user;
   try {
-    user = JSON.parse(userHeader);  // JSON 문자열을 객체로 파싱
+    user = JSON.parse(userHeader);  // JSON 파싱
   } catch (err) {
     return res.status(400).json({ error: 'Invalid user information in headers.' });
   }
 
-  const channelIndex = channels.findIndex(channel => channel.id === channelId && channel.groupId === groupId);
+  try {
+    // Super Admin이면 모든 채널을, Group Admin이면 자신이 생성한 채널만 조회
+    const query = user.roles.includes('Super Admin') 
+      ? { groupId } 
+      : { groupId, creator: user.username };  // 그룹 ID와 생성자가 자신인 채널만 조회
+    const groupChannels = await Channel.find(query);
 
-  if (channelIndex === -1) {
-    return res.status(404).json({ error: 'Channel not found' });
+    res.json(groupChannels);
+  } catch (err) {
+    console.error('Error fetching channels:', err);
+    res.status(500).json({ error: 'Failed to fetch channels' });
+  }
+});
+
+
+// 채널 삭제
+app.delete('/api/groups/:groupId/channels/:channelId', async (req, res) => {
+  const { groupId, channelId } = req.params;
+  const userHeader = req.headers.user;
+
+  if (!userHeader) {
+    return res.status(400).json({ error: 'User information missing in headers.' });
   }
 
-  const channel = channels[channelIndex];
+  let user;
+  try {
+    user = JSON.parse(userHeader);  // JSON 파싱
+  } catch (err) {
+    return res.status(400).json({ error: 'Invalid user information in headers.' });
+  }
 
-  // Group Admin이 자신이 생성한 채널만 삭제할 수 있음, Super Admin은 모든 채널 삭제 가능
-  if (user.roles.includes('Super Admin') || (user.roles.includes('Group Admin') && channel.creator === user.username)) {
-    channels.splice(channelIndex, 1);  // 채널 삭제
-    saveFile(channelsFilePath, channels);  // 삭제 후 파일에 저장
+  try {
+    // Super Admin이거나, Group Admin이면서 자신이 생성한 채널인 경우에만 삭제 가능
+    const query = user.roles.includes('Super Admin') 
+      ? { id: channelId, groupId } 
+      : { id: channelId, groupId, creator: user.username };  // 그룹 ID, 채널 ID, 생성자가 본인일 경우만
+
+    const channel = await Channel.findOneAndDelete(query);
+    if (!channel) {
+      return res.status(404).json({ error: 'Channel not found or permission denied' });
+    }
+
     res.status(200).json({ message: 'Channel deleted successfully' });
-  } else {
-    res.status(403).json({ error: 'You do not have permission to delete this channel.' });
+  } catch (err) {
+    console.error('Error deleting channel:', err);
+    res.status(500).json({ error: 'Failed to delete channel' });
   }
 });
 
-// 사용자 삭제 
 
-app.delete('/api/users/delete/:id', (req, res) => {
-  const userId = req.params.id;  // 문자열로 처리
-  const userIndex = users.findIndex(u => u.id === userId);  // 문자열로 비교
+// Super Admin이 사용자 역할을 변경하는 API (알림 전송 포함)
+app.put('/api/super-admin/promote/:id', async (req, res) => {
+  const userId = req.params.id;
 
-  if (userIndex === -1) {
-    return res.status(404).json({ error: 'User not found' });
+  try {
+    // MongoDB ObjectId로 변환하여 사용자 찾기
+    const user = await User.findById(new mongoose.Types.ObjectId(userId));
+    if (!user) {
+      return res.status(404).json({ error: `User with ID ${userId} not found` });
+    }
+
+    const newRole = req.body.newRole;
+    if (!['Super Admin', 'Group Admin', 'User'].includes(newRole)) {
+      return res.status(400).json({ error: 'Invalid role specified' });
+    }
+
+    // 역할 업데이트
+    user.roles = [newRole];  
+    await user.save();  // MongoDB에 저장
+
+    // 알림 메시지 생성
+    const notificationMessage = `Your role has been changed to ${newRole}. Please accept the promotion in your notifications.`;
+
+    // notifications.json 파일에 사용자 알림 추가
+    if (!notifications[userId]) {
+      notifications[userId] = [];
+    }
+
+    notifications[userId].push({
+      message: notificationMessage,
+      timestamp: new Date().toISOString(),
+    });
+
+    // notifications.json 파일 저장
+    saveFile(notificationsFilePath, notifications);
+
+    res.json({ success: true, message: `User ${user.username} promoted to ${newRole}. Notification sent.` });
+  } catch (err) {
+    console.error(`Failed to promote user with ID ${userId}:`, err);
+    res.status(500).json({ error: 'Failed to promote user' });
   }
-
-  users.splice(userIndex, 1);
-  saveFile(usersFilePath, users);
-  res.json({ success: true });
 });
+
+
 
 
 // 사용자 삭제
 app.delete('/api/super-admin/delete/:id', async (req, res) => {
   const userId = req.params.id;
+
+  // userId 검증
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    console.error(`Invalid userId: ${userId}`);
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
 
   try {
     const user = await User.findById(userId);
@@ -526,6 +593,7 @@ app.delete('/api/super-admin/delete/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete user.' });
   }
 });
+
 
 
 // 그룹 멤버 조회 API
