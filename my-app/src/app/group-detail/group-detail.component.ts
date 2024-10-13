@@ -6,7 +6,6 @@ import { CommonModule } from '@angular/common'; // Angular CommonModule 추가
 import { FormsModule } from '@angular/forms'; // FormsModule 추가
 import { AuthService } from '../auth.service';  // AuthService 임포트 추가
 
-
 @Component({
   selector: 'app-group-detail',
   standalone: true,  // standalone 컴포넌트로 설정
@@ -24,7 +23,11 @@ export class GroupDetailComponent implements OnInit {
   showChannels: boolean = false;
   newUserEmail: string = '';  // 초대할 유저 이메일
 
-  constructor(private route: ActivatedRoute, private http: HttpClient,private authService: AuthService ) {}
+  constructor(
+    private route: ActivatedRoute,
+    private http: HttpClient,
+    private authService: AuthService  // AuthService 주입
+  ) {}
 
   ngOnInit() {
     this.groupId = this.route.snapshot.paramMap.get('id')!;
@@ -128,5 +131,5 @@ export class GroupDetailComponent implements OnInit {
           console.error('Error loading group channels:', error);
         }
       });
-  }  
+  }
 }

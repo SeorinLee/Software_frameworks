@@ -643,6 +643,37 @@ app.post('/api/groups/:groupId/invite', (req, res) => {
     res.status(400).json({ error: 'User is already in the group.' });
   }
 });
+
+// 모든 유저 리스트 조회 API (Group Admin 또는 Super Admin만 접근 가능)
+app.get('/api/users/all', async (req, res) => {
+  const userHeader = req.headers.user;
+  if (!userHeader) {
+    return res.status(400).json({ error: 'User information missing in headers.' });
+  }
+
+  let user;
+  try {
+    user = JSON.parse(userHeader);  // 사용자 정보 파싱
+  } catch (err) {
+    return res.status(400).json({ error: 'Invalid user information in headers.' });
+  }
+
+  // Super Admin 또는 Group Admin만 모든 유저를 조회할 수 있음
+  if (!user.roles.includes('Super Admin') && !user.roles.includes('Group Admin')) {
+    return res.status(403).json({ error: 'Permission denied' });
+  }
+
+  try {
+    // MongoDB에서 모든 유저 정보 조회
+    const users = await User.find({}, { _id: 1, firstName: 1, lastName: 1, email: 1 }); // 필요한 필드만 가져옴
+    res.json(users);
+  } catch (err) {
+    console.error('Error fetching users from MongoDB:', err);
+    res.status(500).json({ error: 'Failed to fetch users from MongoDB' });
+  }
+});
+
+
 // 서버 실행
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
