@@ -22,7 +22,10 @@ export class GroupDetailComponent implements OnInit {
   showMembers: boolean = true;
   showChannels: boolean = false;
   newUserEmail: string = '';  // 초대할 유저 이메일
+  newAdminEmail: string = ''; // Group Admin으로 추가할 유저 이메일
   allUsers: any[] = [];  // 모든 유저 리스트
+  isSuperAdmin: boolean = false;  // Super Admin 여부 확인
+  filteredAdmins: any[] = []; // 'g'로 시작하는 유저 저장
 
   constructor(
     private route: ActivatedRoute,
@@ -36,11 +39,20 @@ export class GroupDetailComponent implements OnInit {
       console.error('Invalid groupId');
       return;
     }
+
+    this.checkSuperAdmin();  // Super Admin 여부 확인
     this.loadGroupDetails();
     this.loadGroupMembers();
     this.loadGroupChannels(); // 그룹 채널 먼저 로드
     this.loadAllUsers();  // 모든 유저 로드
   }
+
+    // Super Admin 여부 확인
+    checkSuperAdmin() {
+      const user = this.authService.getStoredUser();
+      this.isSuperAdmin = user.roles.includes('Super Admin');
+    }
+
 
   // 그룹 정보 로드
   loadGroupDetails() {
@@ -61,8 +73,9 @@ export class GroupDetailComponent implements OnInit {
     this.http.get<any[]>(`http://localhost:4002/api/groups/${this.groupId}/members`)
       .subscribe({
         next: (data: any[]) => {
-          this.groupMembers = data.filter(member => member.status !== 'Group Admin'); // 일반 유저만 분리
-          this.addGroupAdminToMembers();  // 그룹 생성자 추가
+          this.groupMembers = data.filter(member => member.status !== 'Group Admin');
+
+          this.addGroupAdminToMembers();
         },
         error: (error) => {
           console.error('Error loading group members:', error);
@@ -70,18 +83,24 @@ export class GroupDetailComponent implements OnInit {
       });
   }
 
-    // 모든 유저 로드
-    loadAllUsers() {
-      this.http.get<any[]>('http://localhost:4002/api/users')
-        .subscribe({
-          next: (data: any[]) => {
-            this.allUsers = data;  // 모든 유저 데이터 저장
-          },
-          error: (error) => {
-            console.error('Error loading users:', error);
-          }
-        });
-    }
+    // 모든 유저 로드 후 필터링
+  loadAllUsers() {
+    this.http.get<any[]>('http://localhost:4002/api/users')
+      .subscribe({
+        next: (data: any[]) => {
+          this.allUsers = data;  
+          this.filteredAdmins = this.allUsers.filter(user => user.username.startsWith('g'));  // 'g'로 시작하는 유저만 필터링
+        },
+        error: (error) => {
+          console.error('Error loading users:', error);
+        }
+      });
+  }
+    
+  // 'g'로 시작하는 유저 필터링
+  filterGroupAdmins() {
+    this.filteredAdmins = this.allUsers.filter(user => user.username.startsWith('g'));
+  }
 
   // 그룹 생성자를 관리자 리스트에 추가
   addGroupAdminToMembers() {
@@ -121,6 +140,41 @@ export class GroupDetailComponent implements OnInit {
       alert('Please enter a valid email.');
     }
   }
+
+    // Group Admin 추가 기능 (Super Admin 전용)
+// Group Admin 추가 기능 (Super Admin 전용)
+addGroupAdmin() {
+  // g로 시작하는 유저만 필터링
+  const eligibleUsers = this.allUsers.filter(user => user.username.startsWith('g'));
+
+  if (!this.newAdminEmail) {
+    alert('Please select a valid email.');
+    return;
+  }
+
+  // 중복 확인: 이미 그룹 관리자에 추가된 유저는 다시 추가하지 않음
+  const alreadyAdmin = this.groupAdmins.find(admin => admin.email === this.newAdminEmail);
+  if (alreadyAdmin) {
+    alert('This user is already a Group Admin.');
+    return;
+  }
+
+  const adminData = { email: this.newAdminEmail, groupId: this.groupId };
+  this.http.post(`http://localhost:4002/api/groups/${this.groupId}/add-admin`, adminData)
+    .subscribe({
+      next: () => {
+        alert('Group Admin added successfully.');
+        this.newAdminEmail = '';  // 입력 필드 초기화
+        this.loadGroupMembers();  // 업데이트된 멤버 목록 다시 로드
+      },
+      error: (error) => {
+        console.error('Error adding Group Admin:', error);
+        alert('Error adding Group Admin. Please try again.');
+      }
+    });
+}
+
+
 
   // 탭 전환: 멤버
   showMembersTab() {

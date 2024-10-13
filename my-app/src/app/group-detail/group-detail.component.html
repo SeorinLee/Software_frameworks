@@ -20,6 +20,19 @@
     </li>
   </ul>
 
+    <!-- Super Admin만 볼 수 있는 Group Admin으로 추가할 유저 선택 -->
+    <div *ngIf="isSuperAdmin">
+      <div class="add-admin-container">
+        <h3>Add Group Admin</h3>
+        <select [(ngModel)]="newAdminEmail">
+          <option *ngFor="let user of filteredAdmins" [value]="user.email">
+            {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
+          </option>
+        </select>
+        <button (click)="addGroupAdmin()">➕ Add Group Admin</button>
+      </div>
+    </div>
+    
   <!-- 일반 유저 리스트 -->
   <h3>Users</h3>
   <ul>
