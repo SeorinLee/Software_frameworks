@@ -12,22 +12,39 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, RouterModule]
 })
 export class NavBarComponent implements OnInit {  // OnInit 인터페이스 구현
-  firstName: string = '';
-  lastName: string = '';
+
+  user: any = {};  // user 속성 정의
+
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  ngOnInit(): void {  // 컴포넌트가 로드될 때 사용자 정보 로드
+  ngOnInit(): void {
     this.loadUserDetails();
+
+    // 프로필 업데이트 이벤트를 구독하여 사용자 정보 갱신
+    this.authService.userProfileUpdated.subscribe((updatedUser: any) => {
+      this.user = updatedUser; // 업데이트된 사용자 정보 반영
+      this.user.profilePictureUrl = this.user.profilePictureUrl 
+        ? `http://localhost:4002${this.user.profilePictureUrl}` 
+        : 'images/chatlogo.png';  // 기본 프로필 사진 설정
+      console.log('Updated user details:', this.user); // 업데이트된 사용자 정보 로그
+    });
   }
 
   loadUserDetails() {
-    const user = this.authService.getStoredUser(); // 저장된 사용자 정보 가져오기
-    if (user) {
-      this.firstName = user.firstName || ''; // firstName 값 할당
-      this.lastName = user.lastName || '';   // lastName 값 할당
+    this.user = this.authService.getStoredUser(); // 사용자 정보 가져오기
+    if (!this.user) {
+      console.warn('No user found. Redirecting to login.'); // 사용자 정보가 없을 때 경고 로그
+      this.router.navigate(['/login']); // 사용자 정보가 없으면 로그인 페이지로 리디렉션
+    } else {
+      // 프로필 사진 URL을 서버 경로로 설정
+      this.user.profilePictureUrl = this.user.profilePictureUrl 
+        ? `http://localhost:4002${this.user.profilePictureUrl}` 
+        : 'images/chatlogo.png';  // 기본 프로필 사진 설정
+      console.log('Loaded user details:', this.user); // 로드된 사용자 정보 로그
     }
   }
+  
 
   logout() {
     this.authService.logout();
@@ -58,12 +75,16 @@ export class NavBarComponent implements OnInit {  // OnInit 인터페이스 구�
 
   navigateToProfile() {
     const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    if (user && user.id) {
+    console.log('Retrieved user from sessionStorage:', user);  // 세션에서 가져온 사용자 정보 출력
+    if (user && user._id) {
       this.router.navigate(['/profile']);
     } else {
+      console.log('No user found in sessionStorage.');  // 세션에 사용자가 없는 경우
       alert('No user found. Please log in again.');
+      this.router.navigate(['/login']);
     }
   }
+  
 
   isSuperAdmin(): boolean {
     const user = JSON.parse(sessionStorage.getItem('user') || '{}');

@@ -48,6 +48,21 @@ export class GroupAdminComponent {
     }
   }
 
+    // 페이지 이동 함수
+    navigateToPage(page: string) {
+      switch (page) {
+        case 'group-admin':
+          this.router.navigate(['/group-admin']);
+          break;
+        case 'all-groups':
+          this.router.navigate(['/all-groups']);
+          break;
+        case 'interest-groups':
+          this.router.navigate(['/interest-groups']);
+          break;
+      }
+    }
+
   // 그룹 클릭 시 그룹 세부 페이지로 이동하는 함수
   navigateToGroup(groupId: string) {
     this.router.navigate([`/groups/${groupId}`]);  // 그룹 상세 페이지로 이동

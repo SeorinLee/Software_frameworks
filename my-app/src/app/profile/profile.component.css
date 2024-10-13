@@ -74,3 +74,20 @@
   font-size: 1.2em;
   cursor: pointer;
 }
+.profile-container {
+  max-width: 600px;
+  margin: 0 auto; /* 전체 컨테이너를 가운데로 */
+  text-align: center; /* 텍스트 및 이미지 가운데 정렬 */
+}
+
+.profile-picture {
+  margin: 20px 0; /* 위아래 여백 추가 */
+}
+
+.profile-picture img {
+  border-radius: 20%; /* 원형 프로필 사진 */
+  display: block;
+  margin: 0 auto; /* 이미지 자체를 가운데 정렬 */
+}
+
+

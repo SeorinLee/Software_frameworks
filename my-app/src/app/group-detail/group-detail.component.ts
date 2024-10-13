@@ -4,6 +4,8 @@ import { HttpClient } from '@angular/common/http';
 import { NavBarComponent } from '../nav-bar/nav-bar.component';
 import { CommonModule } from '@angular/common'; // Angular CommonModule 추가
 import { FormsModule } from '@angular/forms'; // FormsModule 추가
+import { AuthService } from '../auth.service';  // AuthService 임포트 추가
+
 
 @Component({
   selector: 'app-group-detail',
@@ -22,10 +24,14 @@ export class GroupDetailComponent implements OnInit {
   showChannels: boolean = false;
   newUserEmail: string = '';  // 초대할 유저 이메일
 
-  constructor(private route: ActivatedRoute, private http: HttpClient) {}
+  constructor(private route: ActivatedRoute, private http: HttpClient,private authService: AuthService ) {}
 
   ngOnInit() {
     this.groupId = this.route.snapshot.paramMap.get('id')!;
+    if (!this.groupId || this.groupId === '') {
+      console.error('Invalid groupId');
+      return;
+    }
     this.loadGroupDetails();
     this.loadGroupMembers();
   }
@@ -112,7 +118,8 @@ export class GroupDetailComponent implements OnInit {
 
   // 그룹 채널 로드
   loadGroupChannels() {
-    this.http.get<any[]>(`http://localhost:4002/api/groups/${this.groupId}/channels`)
+    const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };  // 사용자 정보를 헤더에 추가
+    this.http.get<any[]>(`http://localhost:4002/api/groups/${this.groupId}/channels`, { headers })
       .subscribe({
         next: (data: any[]) => {
           this.groupChannels = data;
@@ -121,5 +128,5 @@ export class GroupDetailComponent implements OnInit {
           console.error('Error loading group channels:', error);
         }
       });
-  }
+  }  
 }

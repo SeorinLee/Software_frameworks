@@ -15,6 +15,7 @@ export class UserDashboardComponent implements OnInit {
   title = 'User Dashboard';  // title 속성 추가
   groups: any[] = [];  // 그룹 데이터를 저장할 배열
   filteredGroups: any[] = [];  // 검색에 따라 필터링된 그룹
+  currentPage: string = 'dashboard';  // 현재 페이지 상태
 
   constructor(private http: HttpClient, private router: Router) {}  // Router 주입
 
@@ -60,6 +61,23 @@ loadUserGroups() {
       );
     }
   }
+
+    // 그룹 멤버 관리 페이지로 이동
+    navigateToAllGroups() {
+      this.currentPage = 'all-groups';
+      this.router.navigate(['/all-groups']);
+    }
+  
+    // 채널 멤버 관리 페이지로 이동
+    navigateToInterestGroups() {
+      this.currentPage = 'interest-groups';
+      this.router.navigate(['/interest-groups']);
+    }
+
+    navigateToDashboard() {
+      this.currentPage = 'dashboard';
+      this.router.navigate(['/user-dashboard']);
+    }
 
   // 그룹 상세 페이지로 이동하는 함수
   navigateToGroup(groupId: string) {

@@ -1,4 +1,39 @@
+/* Super Admin 전체 네비게이션 바 스타일 */
+.user-dashboard-navigation {
+  background-color: #004d4d;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: flex-start;
+  margin-left: 17%; /* 왼쪽 여백을 통해 콘텐츠와 구분 */
+}
+
+.user-dashboard-navigation ul {
+  list-style-type: none;
+  display: flex;
+  gap: 20px; /* 각 항목 간의 간격 */
+  margin: 0;
+  padding: 0;
+}
+
+.user-dashboard-navigation ul li {
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.user-dashboard-navigation ul li:hover {
+  text-decoration: underline; /* 호버 시 밑줄 */
+}
+
+/* 현재 선택된 페이지를 강조하는 active 클래스 */
+.user-dashboard-navigation ul li.active {
+  text-decoration: underline;
+  color: #00cccc; /* 선택된 항목 강조 색상 */
+}
 /* User Dashboard 페이지의 스타일 정의 */
+
 h1 {
   color: #5a5a5a;
 }

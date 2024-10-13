@@ -1,18 +1,21 @@
 <div class="notification-container">
   <app-nav-bar></app-nav-bar>
   <div class="notification-content">
-<div *ngIf="selectedNotification; else notificationList">
-  <h3>{{ selectedNotification.message }}</h3>
-  <button (click)="onAccept()">Accept</button>
-  <button (click)="onClose()">Close</button>
-</div>
+    <!-- 선택한 알림이 있을 경우 해당 알림을 표시 -->
+    <div *ngIf="selectedNotification; else notificationList">
+      <h3>{{ selectedNotification.message }}</h3>
+      <button (click)="onAccept()">Accept</button>
+      <button (click)="onClose()">Close</button>
+    </div>
 
-<ng-template #notificationList>
-  <ul>
-    <li *ngFor="let notification of notifications" (click)="onNotificationClick(notification)">
-      {{ notification.message }} - <small>{{ notification.timestamp | date:'short' }}</small>
-    </li>
-  </ul>
-</ng-template>
+    <!-- 알림 목록 -->
+    <ng-template #notificationList>
+      <ul>
+        <li *ngFor="let notification of notifications" (click)="onNotificationClick(notification)">
+          {{ notification.message }} - 
+          <small>{{ notification.timestamp | date:'short' }}</small>
+        </li>
+      </ul>
+    </ng-template>
   </div>
 </div>

@@ -1,22 +1,33 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, throwError, Subject } from 'rxjs'; // Subject를 올바르게 import
+import { catchError, tap } from 'rxjs/operators'; // tap 임포트 추가
 import { isPlatformBrowser } from '@angular/common';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private apiUrl = 'http://localhost:4002/api'; // API 엔드포인트 URL 기본 경로
+  public userProfileUpdated = new Subject<any>(); // 프로필 업데이트 Subject 추가
 
   constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {}
 
-  // 로그인 메서드 (이메일과 비밀번호로 로그인)
   login(email: string, password: string): Observable<any> {
     const loginData = { email, password };
-    return this.http.post<any>(`${this.apiUrl}/auth`, loginData);  // 서버로 로그인 요청
+    return this.http.post<any>(`${this.apiUrl}/auth`, loginData).pipe(
+      tap((user) => {
+        if (isPlatformBrowser(this.platformId)) {
+          console.log('Login successful. User data:', user);  // 로그인 성공 시 사용자 정보 출력
+          sessionStorage.setItem('user', JSON.stringify(user));  // 사용자 정보를 세션에 저장
+          console.log('Stored user in sessionStorage:', sessionStorage.getItem('user'));  // 세션에 저장된 값 확인
+        }
+      }),
+      catchError(this.handleError)
+    );
   }
+  
 
   // 회원가입 메서드
   register(newUser: any): Observable<boolean> {
@@ -32,10 +43,10 @@ export class AuthService {
     return new Observable<any>(); // 사용자가 없으면 빈 Observable 반환
   }
 
-  // 프로필 업데이트
-  updateProfile(user: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/users/${user.id}`, user);
-  }
+  // // 프로필 업데이트
+  // updateProfile(user: any): Observable<any> {
+  //   return this.http.put(`${this.apiUrl}/users/${user.id}`, user);
+  // }
 
 
   // 사용자 인증 여부 확인
@@ -48,6 +59,20 @@ export class AuthService {
     const user = this.getStoredUser();
     return user ? user.roles[0] : null;  // 첫 번째 역할 반환 (예: 'Super Admin')
   }
+
+    // 프로필 업데이트 메서드
+    updateProfile(user: any): Observable<any> {
+      return this.http.put(`${this.apiUrl}/users/${user.id}`, user).pipe(
+        catchError(this.handleError),
+        tap((updatedUser) => {
+          if (isPlatformBrowser(this.platformId)) {
+            // 업데이트된 사용자 정보 저장
+            sessionStorage.setItem('user', JSON.stringify(updatedUser));
+            this.userProfileUpdated.next(updatedUser); // 업데이트된 사용자 정보를 구독자에게 알림
+          }
+        })
+      );
+    }
 
   // 저장된 사용자 정보 가져오기 (로컬 스토리지나 세션 스토리지에서)
   getStoredUser(): any | null {

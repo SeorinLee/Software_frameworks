@@ -25,29 +25,39 @@ export class UserManagementComponent {
     });
   }
 
-  // 사용자를 삭제하는 메서드 (Group Admin과 User만 삭제 가능)
-  removeUser(user: any) {
-    if (user.roles.includes('Group Admin') || user.roles.includes('User')) {
-      if (confirm(`Are you sure you want to delete ${user.username}?`)) {
-        this.http.delete(`http://localhost:4002/api/super-admin/delete/${user.id}`).subscribe(() => {
-          alert('User deleted successfully');
-          this.loadUsers();  // 목록 다시 불러오기
-        });
-      }
-    } else {
-      alert('You cannot delete a Super Admin.');
-    }
-  }
-
-  // 역할 변경 요청 (각 유저의 selectedRole 사용)
-  changeUserRole(user: any) {
-    if (user.selectedRole) {
-      this.http.put(`http://localhost:4002/api/super-admin/promote/${user.id}`, { newRole: user.selectedRole }).subscribe(() => {
-        alert(`Promotion request sent to the user. They need to accept it in their notifications.`);
-        this.loadUsers();
+// 사용자를 삭제하는 메서드 (Group Admin과 User만 삭제 가능)
+removeUser(user: any) {
+  if (user.roles.includes('Group Admin') || user.roles.includes('User')) {
+    if (confirm(`Are you sure you want to delete ${user.username}?`)) {
+      // _id를 사용하여 사용자 ID 전달
+      this.http.delete(`http://localhost:4002/api/super-admin/delete/${user._id}`).subscribe(() => {
+        alert('User deleted successfully');
+        this.loadUsers();  // 목록 다시 불러오기
+      }, (error) => {
+        console.error('Failed to delete user:', error);
+        alert('Failed to delete user. Please try again later.');
       });
-    } else {
-      alert('Please select a role.');
     }
+  } else {
+    alert('You cannot delete a Super Admin.');
   }
+}
+
+
+// 역할 변경 요청 (각 유저의 selectedRole 사용)
+changeUserRole(user: any) {
+  if (user.selectedRole) {
+    // _id를 사용하여 사용자 ID 전달
+    this.http.put(`http://localhost:4002/api/super-admin/promote/${user._id}`, { newRole: user.selectedRole }).subscribe(() => {
+      alert(`Promotion request sent to the user. They need to accept it in their notifications.`);
+      this.loadUsers();  // 역할 변경 후 목록 다시 불러오기
+    }, (error) => {
+      console.error('Failed to promote user:', error);
+      alert('Failed to promote user. Please try again later.');
+    });
+  } else {
+    alert('Please select a role.');
+  }
+}
+
 }

@@ -1,5 +1,14 @@
-<div class="dashboard-container">
-  <app-nav-bar></app-nav-bar>
+
+<app-nav-bar></app-nav-bar>
+
+<div class="user-dashboard-navigation">
+  <ul>
+    <li (click)="navigateToDashboard()" class="nav-item" [class.active]="currentPage === 'dashboard'">Dashboard</li>
+    <li (click)="navigateToAllGroups()" class="nav-item" [class.active]="currentPage === 'AllGroups'">All Groups</li>
+    <li (click)="navigateToInterestGroups()" class="nav-item" [class.active]="currentPage === 'InterestGroups'">Interest Groups</li>
+  </ul>
+</div>
+
   <div class="dashboard-content">
     <h1>{{ title }}</h1>
     
@@ -17,4 +26,4 @@
       <p>No accepted groups found.</p>
     </div>
   </div>
-</div>
+

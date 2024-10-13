@@ -4,7 +4,17 @@
 
 <div class="profile-container">
   <h2>Profile</h2>
+
+  <!-- 프로필 사진 추가 -->
+  <div class="profile-picture">
+    <img [src]="user.profilePictureUrl" alt="Profile Picture" width="250" height="300">
+  </div>
+
+
   <form (submit)="onSaveProfile()">
+     <!-- 프로필 사진 업로드 추가 -->
+  <label for="profilePicture">Profile Picture:</label>
+  <input type="file" id="profilePicture" (change)="onFileSelected($event)">
     <label for="username">Username:</label>
     <input type="text" id="username" [(ngModel)]="user.username" name="username" required readonly>
 
@@ -19,5 +29,4 @@
 
     <button type="submit" class="btn-save">Save Changes</button>
   </form>
-  <button class="btn-delete" (click)="onDeleteAccount()">Delete Account</button>
 </div>
