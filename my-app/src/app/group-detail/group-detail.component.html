@@ -30,12 +30,14 @@
     </li>
   </ul>
 
-  <!-- 그룹에 새로운 유저 초대 -->
-  <div class="invite-user-container">
-    <h3>Invite User</h3>
-    <input type="email" [(ngModel)]="newUserEmail" placeholder="Enter user's email" />
-    <button (click)="inviteUser()">➕ Invite</button>
-  </div>
+ <!-- 유저 초대 드롭다운 -->
+ <div class="invite-user-container">
+  <h3>Invite User</h3>
+  <select [(ngModel)]="newUserEmail">
+    <option *ngFor="let user of allUsers" [value]="user.email">{{ user.firstName }} {{ user.lastName }} ({{ user.email }})</option>
+  </select>
+  <button (click)="inviteUser()">➕ Invite</button>
+</div>
 </div>
 
 <!-- 그룹 채널 리스트 -->
@@ -47,6 +49,9 @@
       <p>{{ channel.description }}</p>
     </li>
   </ul>
+  <div *ngIf="groupChannels.length === 0">
+    <p>No channels available in this group.</p>
+  </div>
 </div>
 <!-- 그룹 기본 정보 -->
 <div class="group-detail-container">

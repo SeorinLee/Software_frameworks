@@ -50,12 +50,13 @@
   padding: 0;
 }
 
-.group-detail-container li {
+.group-detail-container ul li {
   background-color: white;
   padding: 10px;
   margin-bottom: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
+  color: black; /* 텍스트 색상 변경 */
 }
 
 .group-detail-container li:hover {

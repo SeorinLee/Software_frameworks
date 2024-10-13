@@ -22,6 +22,7 @@ export class GroupDetailComponent implements OnInit {
   showMembers: boolean = true;
   showChannels: boolean = false;
   newUserEmail: string = '';  // 초대할 유저 이메일
+  allUsers: any[] = [];  // 모든 유저 리스트
 
   constructor(
     private route: ActivatedRoute,
@@ -37,6 +38,8 @@ export class GroupDetailComponent implements OnInit {
     }
     this.loadGroupDetails();
     this.loadGroupMembers();
+    this.loadGroupChannels(); // 그룹 채널 먼저 로드
+    this.loadAllUsers();  // 모든 유저 로드
   }
 
   // 그룹 정보 로드
@@ -66,6 +69,19 @@ export class GroupDetailComponent implements OnInit {
         }
       });
   }
+
+    // 모든 유저 로드
+    loadAllUsers() {
+      this.http.get<any[]>('http://localhost:4002/api/users')
+        .subscribe({
+          next: (data: any[]) => {
+            this.allUsers = data;  // 모든 유저 데이터 저장
+          },
+          error: (error) => {
+            console.error('Error loading users:', error);
+          }
+        });
+    }
 
   // 그룹 생성자를 관리자 리스트에 추가
   addGroupAdminToMembers() {
