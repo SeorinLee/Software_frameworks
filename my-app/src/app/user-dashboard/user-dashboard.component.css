@@ -1,3 +1,26 @@
+/* 그룹 컨테이너 스타일 */
+.group-container {
+  max-width: 500px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.group-container:hover {
+  transform: translateY(-5px); /* 호버 시 살짝 올라가는 효과 */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 그룹들을 감싸는 컨테이너 */
+.groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* 그룹 간 간격 설정 */
+}
+
 /* Super Admin 전체 네비게이션 바 스타일 */
 .user-dashboard-navigation {
   background-color: #004d4d;
@@ -32,8 +55,8 @@
   text-decoration: underline;
   color: #00cccc; /* 선택된 항목 강조 색상 */
 }
-/* User Dashboard 페이지의 스타일 정의 */
 
+/* User Dashboard 페이지의 스타일 정의 */
 h1 {
   color: #5a5a5a;
 }
@@ -41,11 +64,23 @@ h1 {
 p {
   font-size: 18px;
 }
+
 /* 기존의 대시보드 및 nav-bar 스타일 */
 .dashboard-container {
   display: flex;
 }
+
 .dashboard-content {
   margin-left: 250px; /* NavBar와의 간격 */
   padding: 20px;
+}
+
+/* 검색 입력 스타일 */
+.search-container input.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 20px;
 }

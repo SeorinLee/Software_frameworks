@@ -1,33 +1,40 @@
-<!-- Group Admin Dashboard -->
-<div class="dashboard-container">
-  <app-nav-bar></app-nav-bar>
-  <div class="group-admin-navigation">
-    <ul>
-      <li [class.active]="title === 'Group Admin Dashboard'" (click)="navigateToPage('group-admin')">Current Page</li>
-      <li (click)="navigateToPage('all-groups')">All Groups</li>
-      <li (click)="navigateToPage('interest-groups')">Interest Groups</li>
-    </ul>
+<app-nav-bar></app-nav-bar>
+
+<!-- 상단 네비게이션 바 -->
+<div class="group-admin-navigation">
+  <ul>
+    <li (click)="showAllGroupsTab()" class="nav-item" [class.active]="showAllGroups">All Groups</li>
+    <li (click)="showInterestGroupsTab()" class="nav-item" [class.active]="showInterestGroups">Interest Groups</li>
+  </ul>
+</div>
+
+<!-- All Groups 탭 -->
+<div *ngIf="showAllGroups" class="dashboard-content">
+  <h1>All Groups</h1>
+
+  <!-- 검색 입력 필드 -->
+  <div class="search-container">
+    <input type="text" placeholder="Search for groups..." [(ngModel)]="searchTerm" (input)="filterGroups()" class="search-input" />
   </div>
-  <div class="dashboard-content">
-    <h1>{{ title }}</h1>
-  
-    <!-- 검색 입력 필드 추가 -->
-    <div class="search-container">
-      <input type="text" placeholder="Search for groups..." [(ngModel)]="searchTerm" (input)="filterGroups()" class="search-input" />
-    </div>
-  
-    <!-- Group Admin이 생성한 그룹을 표시 -->
-    <div *ngIf="filteredGroups.length > 0">
-      <h3>Your Groups</h3>
-      <div class="groups-container">
-        <div *ngFor="let group of filteredGroups" class="group-container" (click)="navigateToGroup(group.id)" style="cursor: pointer;">
-          <strong>{{ group.name }}</strong>
-          <p>{{ group.description }}</p>
-          <p><strong>Created by:</strong> {{ group.creatorName }}</p>
-        </div>
+
+  <!-- Group Admin이 생성한 그룹을 표시 -->
+  <div *ngIf="filteredGroups.length > 0">
+    <h3>Your Groups</h3>
+    <div class="groups-container">
+      <div *ngFor="let group of filteredGroups" class="group-container" (click)="navigateToGroup(group.id)" style="cursor: pointer;">
+        <strong>{{ group.name }}</strong>
+        <p>{{ group.description }}</p>
+        <p><strong>Created by:</strong> {{ group.creatorName }}</p>
       </div>
     </div>
-    <div *ngIf="filteredGroups.length === 0">
-      <p>No groups found. Create a new group to get started.</p>
-    </div>
   </div>
+  <div *ngIf="filteredGroups.length === 0">
+    <p>No groups found. Create a new group to get started.</p>
+  </div>
+</div>
+
+<!-- Interest Groups 탭 -->
+<div *ngIf="showInterestGroups" class="dashboard-content">
+  <h1>Interest Groups</h1>
+  <!-- 여기에 Interest Groups 관련 콘텐츠를 추가할 수 있습니다. -->
+</div>

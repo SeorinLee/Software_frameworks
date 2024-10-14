@@ -11,13 +11,15 @@ import { NavBarComponent } from '../nav-bar/nav-bar.component';
   standalone: true,
   templateUrl: './group-admin.component.html',
   styleUrls: ['./group-admin.component.css'],
-  imports: [CommonModule, FormsModule, NavBarComponent]  // CommonModule 추가
+  imports: [CommonModule, FormsModule, NavBarComponent]  // CommonModule 및 FormsModule 추가
 })
 export class GroupAdminComponent {
   title = 'Group Admin Dashboard';
   groups: any[] = [];
   filteredGroups: any[] = [];
   searchTerm: string = '';  // 검색어 추가
+  showAllGroups: boolean = true;  // 기본적으로 All Groups 탭을 보여줌
+  showInterestGroups: boolean = false;  // Interest Groups 탭은 기본적으로 숨김
 
   constructor(
     private http: HttpClient,
@@ -27,6 +29,7 @@ export class GroupAdminComponent {
     this.loadGroups();
   }
 
+  // 모든 그룹을 로드하는 함수
   loadGroups() {
     const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };
     this.http.get<any[]>('http://localhost:4002/api/groups', { headers }).subscribe(data => {
@@ -35,6 +38,7 @@ export class GroupAdminComponent {
     });
   }
 
+  // 검색 기능 구현
   filterGroups() {
     if (!this.searchTerm) {
       this.filteredGroups = this.groups;
@@ -48,20 +52,17 @@ export class GroupAdminComponent {
     }
   }
 
-    // 페이지 이동 함수
-    navigateToPage(page: string) {
-      switch (page) {
-        case 'group-admin':
-          this.router.navigate(['/group-admin']);
-          break;
-        case 'all-groups':
-          this.router.navigate(['/all-groups']);
-          break;
-        case 'interest-groups':
-          this.router.navigate(['/interest-groups']);
-          break;
-      }
-    }
+  // 탭 전환: All Groups
+  showAllGroupsTab() {
+    this.showAllGroups = true;
+    this.showInterestGroups = false;
+  }
+
+  // 탭 전환: Interest Groups
+  showInterestGroupsTab() {
+    this.showAllGroups = false;
+    this.showInterestGroups = true;
+  }
 
   // 그룹 클릭 시 그룹 세부 페이지로 이동하는 함수
   navigateToGroup(groupId: string) {

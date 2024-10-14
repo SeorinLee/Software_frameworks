@@ -386,10 +386,9 @@ app.delete('/api/groups/:id', (req, res) => {
 
 // 그룹 조회
 app.get('/api/groups', (req, res) => {
-  const user = JSON.parse(req.headers.user);
-  const userGroups = user.roles.includes('Super Admin') ? groups : groups.filter(group => group.creator === user.username);
-  res.json(userGroups);
+  res.json(groups); // 모든 그룹을 반환
 });
+
 
 // 특정 그룹 조회
 app.get('/api/groups/:id', (req, res) => {

@@ -16,9 +16,11 @@ import { NavBarComponent } from '../nav-bar/nav-bar.component';
 export class SuperAdminComponent implements OnInit {
   title = 'Super Admin Dashboard';
   groups: any[] = [];
-  searchTerm: string = '';
   filteredGroups: any[] = [];
-  currentPage: string = 'dashboard';  // 현재 페이지 상태
+  showAllGroups: boolean = true;  // 탭 상태 관리
+  showInterestGroups: boolean = false;
+  selectedGroup: any = null;
+  searchTerm: string = '';
 
   constructor(
     private http: HttpClient,
@@ -30,6 +32,7 @@ export class SuperAdminComponent implements OnInit {
     this.loadGroups();
   }
 
+  // 그룹 목록 로드
   loadGroups() {
     const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };
     this.http.get<any[]>('http://localhost:4002/api/groups', { headers }).subscribe(data => {
@@ -38,6 +41,7 @@ export class SuperAdminComponent implements OnInit {
     });
   }
 
+  // 그룹 필터링
   filterGroups() {
     if (!this.searchTerm) {
       this.filteredGroups = this.groups;
@@ -51,26 +55,20 @@ export class SuperAdminComponent implements OnInit {
     }
   }
 
+  // All Groups 탭으로 전환
+  showAllGroupsTab() {
+    this.showAllGroups = true;
+    this.showInterestGroups = false;
+  }
+
+  // Interest Groups 탭으로 전환
+  showInterestGroupsTab() {
+    this.showAllGroups = false;
+    this.showInterestGroups = true;
+  }
+
   // 그룹 클릭 시 그룹 세부 페이지로 이동하는 함수
   navigateToGroup(groupId: string) {
     this.router.navigate([`/groups/${groupId}`]);
-  }
-
-  // Super Admin Dashboard로 이동
-  navigateToDashboard() {
-    this.currentPage = 'dashboard';
-    this.router.navigate(['/super-admin']);
-  }
-
-  // 그룹 멤버 관리 페이지로 이동
-  navigateToAllGroups() {
-    this.currentPage = 'all-groups';
-    this.router.navigate(['/all-groups']);
-  }
-
-  // 채널 멤버 관리 페이지로 이동
-  navigateToInterestGroups() {
-    this.currentPage = 'interest-groups';
-    this.router.navigate(['/interest-groups']);
   }
 }
