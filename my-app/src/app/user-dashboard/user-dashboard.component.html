@@ -20,9 +20,13 @@
   <div *ngIf="showAllGroups">
     <h3>All Groups</h3>
     <div *ngIf="filteredGroups.length > 0" class="groups-container">
-      <div *ngFor="let group of filteredGroups" class="group-container" (click)="navigateToGroup(group.id)">
+      <div *ngFor="let group of filteredGroups" class="group-container">
         <strong>{{ group.name }}</strong>
         <p>{{ group.description }}</p>
+
+        <!-- 그룹 참여 상태에 따른 버튼 표시 -->
+        <button *ngIf="!isGroupJoined(group.id)" (click)="joinGroup(group.id)">Join</button>
+        <button *ngIf="isGroupJoined(group.id)" (click)="navigateToGroup(group.id)">Go to Group</button>
       </div>
     </div>
     <div *ngIf="filteredGroups.length === 0">
@@ -32,15 +36,19 @@
 
   <!-- Interest Groups 섹션 -->
   <div *ngIf="showInterestGroups">
-    <h3>Your Accepted Groups</h3>
+    <h3>Your Interest Groups (Pending/Accepted)</h3>
     <div *ngIf="filteredInterestGroups.length > 0" class="groups-container">
-      <div *ngFor="let group of filteredInterestGroups" class="group-container" (click)="navigateToGroup(group.id)">
+      <div *ngFor="let group of filteredInterestGroups" class="group-container">
         <strong>{{ group.name }}</strong>
         <p>{{ group.description }}</p>
+
+        <!-- 그룹 상태에 따른 버튼 표시 -->
+        <button *ngIf="group.status === 'Pending'">Pending Approval</button>
+        <button *ngIf="group.status === 'Accepted'" (click)="navigateToGroup(group.id)">Go to Group</button>
       </div>
     </div>
     <div *ngIf="filteredInterestGroups.length === 0">
-      <p>No accepted groups found.</p>
+      <p>No groups found.</p>
     </div>
   </div>
 </div>

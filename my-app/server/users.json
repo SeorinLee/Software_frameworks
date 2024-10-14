@@ -120,5 +120,57 @@
     ],
     "groups": [],
     "dob": "2024-10-17"
+  },
+  {
+    "id": "10",
+    "username": "g098932080492890",
+    "password": "$2b$10$A5UMye4F6yinnF4mghihDOUKdPoxkDo9jblLTZqmp7ZeDwXkkqX/u",
+    "firstName": "Georin",
+    "lastName": "Lee",
+    "email": "g@4.com",
+    "roles": [
+      "Group Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-24"
+  },
+  {
+    "id": "11",
+    "username": "u238473",
+    "password": "$2b$10$dwASUonptcOd4k9y9qBWd.Yb5mJxeFE4h8vj5yqE1erqT3G.UDfMa",
+    "firstName": "Seorin",
+    "lastName": "Lee",
+    "email": "u@6.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [],
+    "dob": "2024-10-10"
+  },
+  {
+    "id": "12",
+    "username": "u90303u3",
+    "password": "$2b$10$oSQl9UJb/4o3qsSQdWEJ.uJw2vEORDb/NDEhr7UQQGxKxEVACFM4W",
+    "firstName": "User",
+    "lastName": "Lee",
+    "email": "u@7.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [],
+    "dob": "2024-10-11"
+  },
+  {
+    "id": "13",
+    "username": "u888888",
+    "password": "$2b$10$sqlHeAfWuowqBxiheYQGR./c3T60fxp28bYFXJcRz14bg43kMavDa",
+    "firstName": "u8",
+    "lastName": "u8",
+    "email": "u@8.com",
+    "roles": [
+      "User"
+    ],
+    "groups": [],
+    "dob": "2024-10-25"
   }
 ]

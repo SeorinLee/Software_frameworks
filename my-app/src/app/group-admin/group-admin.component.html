@@ -4,6 +4,7 @@
 <div class="group-admin-navigation">
   <ul>
     <li (click)="showAllGroupsTab()" class="nav-item" [class.active]="showAllGroups">All Groups</li>
+    <li (click)="showMyGroupTab()" class="nav-item" [class.active]="showMyGroup">My Groups</li>
     <li (click)="showInterestGroupsTab()" class="nav-item" [class.active]="showInterestGroups">Interest Groups</li>
   </ul>
 </div>
@@ -17,7 +18,36 @@
     <input type="text" placeholder="Search for groups..." [(ngModel)]="searchTerm" (input)="filterGroups()" class="search-input" />
   </div>
 
-  <!-- Group Admin이 생성한 그룹을 표시 -->
+  <!-- 다른 관리자가 생성한 그룹을 표시 -->
+  <div *ngIf="filteredGroups.length > 0">
+    <h3>Other Admins' Groups</h3>
+    <div class="groups-container">
+      <div *ngFor="let group of filteredGroups" class="group-container">
+        <strong>{{ group.name }}</strong>
+        <p>{{ group.description }}</p>
+        <p><strong>Created by:</strong> {{ group.creatorName }}</p>
+
+        <!-- Join 버튼 -->
+        <button *ngIf="!group.members || !group.members.includes(authService.getStoredUser().id)" (click)="joinGroup(group.id)">Join</button>
+        <button *ngIf="group.members && group.members.includes(authService.getStoredUser().id)" (click)="navigateToGroup(group.id)">Go to Group</button>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="filteredGroups.length === 0">
+    <p>No groups found.</p>
+  </div>
+</div>
+
+<!-- My Groups 탭 -->
+<div *ngIf="showMyGroup" class="dashboard-content">
+  <h1>My Groups</h1>
+
+  <!-- 검색 입력 필드 -->
+  <div class="search-container">
+    <input type="text" placeholder="Search for groups..." [(ngModel)]="searchTerm" (input)="filterGroups()" class="search-input" />
+  </div>
+
+  <!-- 본인이 생성한 그룹을 표시 -->
   <div *ngIf="filteredGroups.length > 0">
     <h3>Your Groups</h3>
     <div class="groups-container">
@@ -29,12 +59,6 @@
     </div>
   </div>
   <div *ngIf="filteredGroups.length === 0">
-    <p>No groups found. Create a new group to get started.</p>
+    <p>No groups found.</p>
   </div>
-</div>
-
-<!-- Interest Groups 탭 -->
-<div *ngIf="showInterestGroups" class="dashboard-content">
-  <h1>Interest Groups</h1>
-  <!-- 여기에 Interest Groups 관련 콘텐츠를 추가할 수 있습니다. -->
 </div>

@@ -1,100 +1,226 @@
 [
   {
-    "id": "test5",
-    "name": "1",
-    "description": "1",
-    "creator": "g123",
-    "creatorName": "Seorin Lee"
+    "id": "670cab82401b56eb83d76ed9",
+    "name": "group test2",
+    "description": "2",
+    "creator": "g098932080492890",
+    "creatorName": "Georin Lee",
+    "members": [
+      "670ccc7839d49e1696df7862"
+    ]
   },
   {
-    "id": "4",
-    "name": "test4",
-    "description": "4",
-    "creator": "s1015",
-    "creatorName": "Rin Lee"
+    "id": "670cb18066cfd073cfd0483b",
+    "name": "group test3",
+    "description": "3",
+    "creator": "g098932080492890",
+    "creatorName": "Georin Lee",
+    "members": [
+      "670cab5f401b56eb83d76ed5",
+      "670abb7448d1254bf95b25d3"
+    ]
   },
   {
-    "id": "34",
-    "name": "sam",
-    "description": "sam",
-    "creator": "g1015",
-    "creatorName": "sam sam"
-  },
-  {
-    "id": "sam4",
-    "name": "sam4",
-    "description": "sa,4",
-    "creator": "g1015",
-    "creatorName": "sam sam"
-  },
-  {
-    "id": "sam5",
-    "name": "5",
-    "description": "5",
-    "creator": "g1015",
-    "creatorName": "sam sam"
-  },
-  {
-    "id": "66",
-    "name": "666",
-    "description": "66",
-    "creator": "g1015",
-    "creatorName": "sam sam"
-  },
-  {
-    "id": "gtest1",
-    "name": "gtest1",
-    "description": ".",
-    "creator": "g239439",
-    "creatorName": "Unknown"
-  },
-  {
-    "id": "super test2",
-    "name": "supernova",
-    "description": "can't stop",
+    "id": "670cb5b6059ca007c3d8187b",
+    "name": "plz",
+    "description": "plz",
     "creator": "s234234234",
-    "creatorName": "Rin Lee"
+    "creatorName": "Rin Lee",
+    "members": [
+      "670a9fc82c19e04e5ead7fb0",
+      "670abb7448d1254bf95b25d3"
+    ]
   },
   {
-    "id": "서린",
-    "name": "테스트",
-    "description": "오바",
-    "creator": "g239439",
-    "creatorName": "Unknown"
+    "id": "670cc2f239d49e1696df762a",
+    "name": "super test over",
+    "description": "re",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": [
+      "670a9fc82c19e04e5ead7fb0",
+      "670abb7448d1254bf95b25d3",
+      "670ccc7839d49e1696df7862"
+    ]
   },
   {
-    "id": "테스트를 한ㄷ자",
-    "name": "다시",
-    "description": "제발",
-    "creator": "g239439",
-    "creatorName": "Rin Lee"
+    "id": "670cc4eb39d49e1696df76ca",
+    "name": "super test5",
+    "description": "super test2",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": [
+      "670a9fc82c19e04e5ead7fb0",
+      "670abb7448d1254bf95b25d3",
+      "670ccc7839d49e1696df7862"
+    ]
   },
   {
-    "id": "670b1a198cf65122a6a7f917",
+    "id": "670ccbe139d49e1696df7831",
+    "name": "stest21",
+    "description": "sad",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": [
+      "670a9fc82c19e04e5ead7fb0"
+    ]
+  },
+  {
+    "id": "670cd53a2aaf46ef8ad43334",
+    "name": "asdhdsa",
+    "description": "sadas",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": [
+      "670a9fc82c19e04e5ead7fb0",
+      "670ccc7839d49e1696df7862",
+      "670cab5f401b56eb83d76ed5",
+      "670ce7cd8bb82dbcd6223526"
+    ]
+  },
+  {
+    "id": "670ce2128bb82dbcd6223345",
+    "name": "ㅁㄴㅇㅁㄴ",
+    "description": "ㅁㄴㅇㅁㄴㅇㅁㄴㅇ",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": [
+      "670a9fc82c19e04e5ead7fb0",
+      "670ccc7839d49e1696df7862",
+      "670ce7cd8bb82dbcd6223526"
+    ]
+  },
+  {
+    "id": "670ceb6e4e7ef1f50f9ced4d",
     "name": "ㅁㄴㅇㅁㄴㅇ",
-    "description": "ㄴㅁㅇㅁㄴㅇ",
+    "description": "ㅁㄴㅇㅁㄴㅇㅁㄴㅇ",
     "creator": "s234234234",
-    "creatorName": "Rin Lee"
+    "creatorName": "Rin Lee",
+    "members": {
+      "accepted": [
+        "670ce7cd8bb82dbcd6223526"
+      ],
+      "pending": [
+        "670a9fc82c19e04e5ead7fb0"
+      ]
+    }
   },
   {
-    "id": "670b323551618d3152ea9b4b",
-    "name": "하이",
-    "description": "하이",
-    "creator": "g239439",
-    "creatorName": "Rinㄴㅇㄴㅇ Lee"
-  },
-  {
-    "id": "670b32f6aeea20fa7f54e1ad",
-    "name": "ㄴㅇㅁㅇ",
-    "description": "ㅁㄴㅇㅁㄴㅇ",
-    "creator": "g1293902",
-    "creatorName": "Seorin Lee"
-  },
-  {
-    "id": "670b5df2677cd1b9e2de2055",
-    "name": "하잉 ",
-    "description": "하잉",
+    "id": "670cec574e7ef1f50f9cedbe",
+    "name": "ㅁㄴㅇㅁㄴ",
+    "description": "ㅁㄴㅇㅁㄴ",
     "creator": "s234234234",
-    "creatorName": "Rin Lee"
+    "creatorName": "Rin Lee",
+    "members": {
+      "accepted": [],
+      "pending": [
+        "670a9fc82c19e04e5ead7fb0",
+        "670ce7cd8bb82dbcd6223526"
+      ]
+    }
+  },
+  {
+    "id": "670cecbe8a7773591db2e3c4",
+    "name": "a",
+    "description": "a",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": {
+      "accepted": [
+        "670a9fc82c19e04e5ead7fb0",
+        "670ce7cd8bb82dbcd6223526"
+      ],
+      "pending": []
+    }
+  },
+  {
+    "id": "670cee498a7773591db2e412",
+    "name": "b",
+    "description": "b",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": {
+      "accepted": [
+        "670a9fc82c19e04e5ead7fb0",
+        "670ce7cd8bb82dbcd6223526",
+        "670ce7cd8bb82dbcd6223526"
+      ],
+      "pending": []
+    }
+  },
+  {
+    "id": "670cee658a7773591db2e44c",
+    "name": "c",
+    "description": "c",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": {
+      "accepted": [
+        "670a9fc82c19e04e5ead7fb0",
+        "670ce7cd8bb82dbcd6223526",
+        "670ce7cd8bb82dbcd6223526"
+      ],
+      "pending": []
+    }
+  },
+  {
+    "id": "670cef758a7773591db2e565",
+    "name": "d",
+    "description": "d",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": {
+      "accepted": [
+        "670a9fc82c19e04e5ead7fb0",
+        "670ce7cd8bb82dbcd6223526",
+        "670ce7cd8bb82dbcd6223526"
+      ],
+      "pending": []
+    }
+  },
+  {
+    "id": "670cf17fa3dc8c9ccd67b83e",
+    "name": "e",
+    "description": "e",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": {
+      "accepted": [
+        "670a9fc82c19e04e5ead7fb0"
+      ],
+      "pending": [
+        "670ce7cd8bb82dbcd6223526",
+        "670cf45ca3dc8c9ccd67b931"
+      ]
+    }
+  },
+  {
+    "id": "670cf475a3dc8c9ccd67b94b",
+    "name": "99",
+    "description": "99",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": {
+      "accepted": [
+        "670a9fc82c19e04e5ead7fb0",
+        "670cf45ca3dc8c9ccd67b931"
+      ],
+      "pending": []
+    }
+  },
+  {
+    "id": "670cf4d8a3dc8c9ccd67b998",
+    "name": "10",
+    "description": "10",
+    "creator": "s234234234",
+    "creatorName": "Rin Lee",
+    "members": {
+      "accepted": [
+        "670a9fc82c19e04e5ead7fb0"
+      ],
+      "pending": [
+        "670cf45ca3dc8c9ccd67b931"
+      ]
+    }
   }
 ]

@@ -20,23 +20,27 @@
     </li>
   </ul>
 
-  <!-- 일반 유저 리스트 -->
-  <h3>Users</h3>
+  <!-- 승인된 유저 리스트 (Accepted) -->
+  <h3>Accepted Users</h3>
   <ul>
     <li *ngFor="let member of groupMembers">
-      <strong>{{ member.firstName }} {{ member.lastName }}</strong> - {{ member.email }} 
-      <span *ngIf="member.status === 'Pending'">(Pending)</span>
-      <span *ngIf="member.status === 'Accepted'">(Accepted)</span>
+      <strong>{{ member.firstName }} {{ member.lastName }}</strong> - {{ member.email }}
+      <span>(Accepted)</span>
+      <button (click)="removeMember(member._id)">❌ Remove</button>
     </li>
   </ul>
 
-  <!-- 그룹에 새로운 유저 초대 -->
-  <div class="invite-user-container">
-    <h3>Invite User</h3>
-    <input type="email" [(ngModel)]="newUserEmail" placeholder="Enter user's email" />
-    <button (click)="inviteUser()">➕ Invite</button>
-  </div>
-</div>
+  <!-- 대기 중인 유저 리스트 (Pending) -->
+  <h3>Pending Users</h3>
+  <ul>
+    <li *ngFor="let pending of pendingMembers">
+      <strong>{{ pending.firstName }} {{ pending.lastName }}</strong> - {{ pending.email }}
+      <span>(Pending)</span>
+      <button (click)="acceptMember(pending._id)">Accept</button>
+    </li>
+  </ul>
+
+
 
 <!-- 그룹 채널 리스트 -->
 <div *ngIf="showChannels" class="group-detail-container">
@@ -47,6 +51,9 @@
       <p>{{ channel.description }}</p>
     </li>
   </ul>
+  <div *ngIf="groupChannels.length === 0">
+    <p>No channels available in this group.</p>
+  </div>
 </div>
 <!-- 그룹 기본 정보 -->
 <div class="group-detail-container">

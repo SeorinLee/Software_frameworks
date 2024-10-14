@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// User 스키마 정의
+// User schema definition
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true },
   password: { type: String, required: true },
@@ -8,12 +8,17 @@ const userSchema = new mongoose.Schema({
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   roles: [String],
-  groups: [String],
+  groups: [
+    {
+      groupId: String,
+      status: { type: String, enum: ['Pending', 'Accepted'], default: 'Pending' }
+    }
+  ],
   dob: { type: Date, required: true },
-  profilePictureUrl: { type: String }  // 프로필 사진 URL 추가
+  profilePictureUrl: { type: String }  // Optional: Profile picture URL
 });
 
-// User 모델 생성
+// Create the User model
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;

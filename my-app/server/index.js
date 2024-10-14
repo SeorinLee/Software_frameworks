@@ -51,6 +51,42 @@ function saveFile(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
+// MongoDB에서 사용자 정보를 업데이트한 후, JSON 파일에 반영하는 함수
+function updateUserInJsonFile(userId, updatedUser) {
+  // JSON 파일에서 유저를 찾기
+  let users = loadFile(usersFilePath);
+  const userIndex = users.findIndex(user => user.id === userId);
+
+  if (userIndex !== -1) {
+    // 유저가 존재하는 경우, MongoDB에서 업데이트된 유저 정보를 JSON 파일에 반영
+    users[userIndex] = {
+      id: updatedUser._id.toString(),  // MongoDB ObjectId를 문자열로 변환
+      username: updatedUser.username,
+      password: updatedUser.password,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      email: updatedUser.email,
+      roles: updatedUser.roles,
+      groups: updatedUser.groups.map(group => ({
+        groupId: group.groupId,
+        status: group.status
+      })),
+      dob: updatedUser.dob.toISOString().split('T')[0]  // 날짜만 저장
+    };
+
+    // 변경된 데이터를 JSON 파일에 저장
+    saveFile(usersFilePath, users);
+    console.log(`User with ID ${userId} updated in users.json.`);
+  } else {
+    console.error(`User with ID ${userId} not found in users.json.`);
+  }
+}
+
+// JSON 파일에 그룹 저장
+function saveGroups(groups) {
+  fs.writeFileSync(groupsFilePath, JSON.stringify(groups, null, 2));
+}
+
 
 let users = loadFile(usersFilePath);
 let notifications = loadFile(notificationsFilePath);
@@ -106,7 +142,6 @@ app.get('/api/notifications/:id', (req, res) => {
 });
 
 
-// 사용자 인증 (로그인)
 app.post('/api/auth', async (req, res) => {
   const { email, password } = req.body;
 
@@ -124,23 +159,21 @@ app.post('/api/auth', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const username = user.username;
-    let role = '';
-    if (username.startsWith('s')) {
-      role = 'Super Admin';
-    } else if (username.startsWith('g')) {
-      role = 'Group Admin';
-    } else if (username.startsWith('u')) {
-      role = 'User';
-    }
+    const responseUser = {
+      _id: user._id,
+      username: user.username,
+      roles: user.roles,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+    };
 
-    user.roles = [role];
-
-    res.json(user);
+    res.json(responseUser); // _id 포함된 객체 반환
   } catch (err) {
     res.status(500).json({ error: 'Login failed' });
   }
 });
+
 
 
 // 사용자 회원가입
@@ -350,6 +383,10 @@ app.post('/api/groups', async (req, res) => {
       description,
       creator,
       creatorName,
+      members: {
+        accepted: [creatorUser._id],  // 생성자는 자동으로 승인됨
+        pending: []  // 대기 중인 멤버는 없음
+      }
     };
 
     groups.push(newGroup);
@@ -374,19 +411,28 @@ app.delete('/api/groups/:id', (req, res) => {
   }
 
   const group = groups[groupIndex];
-  if (user.roles.includes('Group Admin') && group.creator !== user.username) {
+  
+  // Super Admin 또는 Group Admin이면서 생성자인 경우에만 삭제 허용
+  if (user.roles.includes('Super Admin') || (user.roles.includes('Group Admin') && group.creator === user.username)) {
+    groups.splice(groupIndex, 1);  // 그룹 삭제
+    saveFile(groupsFilePath, groups);  // 변경된 그룹 정보를 저장
+    return res.status(200).json({ message: 'Group deleted successfully' });
+  } else {
     return res.status(403).json({ error: 'You do not have permission to delete this group.' });
   }
+});
 
-  groups.splice(groupIndex, 1);
-  saveFile(groupsFilePath, groups);
 
-  res.status(200).json({ message: 'Group deleted successfully' });
+// 그룹 조회
+app.get('/api/allgroups', (req, res) => {
+  res.json(groups); // 모든 그룹을 반환
 });
 
 // 그룹 조회
 app.get('/api/groups', (req, res) => {
-  res.json(groups); // 모든 그룹을 반환
+  const user = JSON.parse(req.headers.user);
+  const userGroups = user.roles.includes('Super Admin') ? groups : groups.filter(group => group.creator === user.username);
+  res.json(userGroups);
 });
 
 
@@ -398,26 +444,88 @@ app.get('/api/groups/:id', (req, res) => {
     return res.status(404).json({ error: 'Group not found' });
   }
 
-  res.json(group);
+  res.json(group); // members 필드도 반환
 });
 
-//사용자(ID 기반)가 속한 그룹 정보
-app.get('/api/users/:id/groups', (req, res) => {
-  const userId = req.params.id;
-  const user = users.find(u => u.id === userId);
+// 사용자(ID 기반)가 속한 그룹 정보
+app.get('/api/users/:id/groups', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
 
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const userGroups = user.groups || [];
+    const acceptedGroups = userGroups.filter(g => g.status === 'Accepted');  // 'Accepted' 상태 필터링
+
+    if (acceptedGroups.length === 0) {
+      return res.status(200).json([]);  // Accepted 그룹이 없으면 빈 배열 반환
+    }
+
+    // 각 그룹의 ID로 실제 그룹 데이터를 반환
+    const groupDetails = acceptedGroups.map(group => {
+      const groupInfo = groups.find(g => g.id === group.groupId);
+      return {
+        groupId: group.groupId,
+        name: groupInfo.name,
+        description: groupInfo.description,
+        status: group.status
+      };
+    });
+
+    res.status(200).json(groupDetails);  // 그룹 정보 반환
+  } catch (error) {
+    console.error('Error fetching user groups:', error);
+    res.status(500).json({ error: 'Failed to fetch user groups' });
   }
-
-  const userGroups = user.groups || [];
-
-  if (userGroups.length === 0) {
-    return res.status(200).json({ groups: [] });  // 그룹이 없는 경우 빈 배열 반환
-  }
-
-  res.json({ groups: userGroups });
 });
+
+// 사용자가 그룹에 참여하는 API (Pending 상태로 추가)
+app.post('/api/groups/:id/join', async (req, res) => {
+  const groupId = req.params.id;
+  const user = JSON.parse(req.headers.user); // 사용자 정보는 헤더에서 받아옴
+
+  try {
+    // 그룹을 찾음
+    const group = groups.find(group => group.id === groupId);
+
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    // MongoDB에서 사용자 찾기
+    const foundUser = await User.findById(user._id);
+
+    if (!foundUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // 이미 pending이나 accepted에 존재하는지 확인
+    if (group.members.pending.includes(user._id) || group.members.accepted.includes(user._id)) {
+      return res.status(400).json({ error: 'User is already a member of the group or pending approval.' });
+    }
+
+    // 그룹 멤버 리스트에 사용자 추가 (pending 상태)
+    group.members.pending.push(user._id);
+
+    // 사용자의 그룹 목록에 해당 그룹 추가 (상태는 Pending)
+    foundUser.groups.push({ groupId: group.id, status: 'Pending' });
+
+    // MongoDB에서 사용자 업데이트
+    await foundUser.save();
+
+    // 변경된 그룹 정보를 저장
+    saveFile(groupsFilePath, groups);
+
+    res.status(200).json({ message: 'Successfully joined the group. Waiting for approval.' });
+  } catch (error) {
+    console.error('Error joining group:', error);
+    res.status(500).json({ error: 'An error occurred while joining the group.' });
+  }
+});
+
 
 
 // 채널 생성
@@ -469,6 +577,188 @@ app.delete('/api/groups/:id', (req, res) => {
     res.status(403).json({ error: 'You do not have permission to delete this group.' });
   }
 });
+
+// 대기 중인 멤버 조회 (Pending 상태)
+app.get('/api/groups/:id/members/pending', async (req, res) => {
+  try {
+    const groupId = req.params.id;
+    const group = groups.find(g => g.id === groupId);
+
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    // MongoDB에서 해당 그룹의 'Pending' 상태인 유저 찾기
+    const pendingMembers = await User.find({
+      'groups.groupId': groupId,
+      'groups.status': 'Pending'
+    }, 'firstName lastName email groups');
+
+    res.status(200).json(pendingMembers);
+  } catch (error) {
+    console.error('Error loading pending members:', error);
+    res.status(500).json({ error: 'Failed to load pending members.' });
+  }
+});
+
+// 관리자 승인 후 그룹 상태를 'Accepted'로 변경
+app.post('/api/groups/:groupId/accept/:userId', async (req, res) => {
+  const { groupId, userId } = req.params;
+
+  try {
+    // MongoDB에서 유저 찾기
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // group.json에서 그룹 찾기
+    const group = groups.find(g => g.id === groupId);
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    // 이미 Accepted에 있는지 확인 (중복 방지)
+    if (!group.members.accepted.includes(userId)) {
+      // accepted에 유저 추가
+      group.members.accepted.push(userId);
+    }
+
+    // pending에서 유저 제거
+    group.members.pending = group.members.pending.filter(id => id !== userId);
+
+    // 사용자의 그룹 상태 변경 (MongoDB)
+    const userGroupIndex = user.groups.findIndex(g => g.groupId === groupId);
+    if (userGroupIndex !== -1) {
+      user.groups[userGroupIndex].status = 'Accepted';
+      await user.save();  // MongoDB에 저장
+    }
+
+    // group.json 파일 저장
+    saveFile(groupsFilePath, groups);
+
+    res.status(200).json({ message: 'Member accepted successfully.' });
+  } catch (error) {
+    console.error('Error accepting member:', error);
+    res.status(500).json({ error: 'Failed to accept member.' });
+  }
+});
+
+// 유저의 관심 그룹 목록 업데이트 API
+app.post('/api/users/:id/updateInterestGroups', async (req, res) => {
+  const { id } = req.params;
+  const { groupId } = req.body;
+
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // 해당 그룹이 이미 Accepted 상태인지 확인하고, 없으면 추가
+    const group = user.groups.find(g => g.groupId === groupId);
+    if (group && group.status === 'Accepted') {
+      return res.status(400).json({ error: 'Group is already accepted.' });
+    } else if (group) {
+      group.status = 'Accepted';
+    } else {
+      user.groups.push({ groupId, status: 'Accepted' });
+    }
+
+    await user.save();  // MongoDB에 저장
+    res.status(200).json({ message: 'Interest groups updated successfully.' });
+  } catch (error) {
+    console.error('Error updating interest groups:', error);
+    res.status(500).json({ error: 'Failed to update interest groups.' });
+  }
+});
+
+
+//그룹 멤버 상태 조회
+app.get('/api/groups/:id/members', (req, res) => {
+  const group = groups.find(g => g.id === req.params.id);
+
+  if (!group) {
+    return res.status(404).json({ error: 'Group not found' });
+  }
+
+  res.json({
+    acceptedMembers: group.members.accepted,
+    pendingMembers: group.members.pending
+  });
+});
+
+
+app.get('/api/groups/:id/members/accepted', async (req, res) => {
+  try {
+    const groupId = req.params.id;
+    const group = groups.find(g => g.id === groupId);
+
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    // MongoDB에서 그룹 ID가 일치하고 상태가 Accepted인 멤버들을 조회
+    const acceptedMembers = await User.find({
+      'groups.groupId': groupId,
+      'groups.status': 'Accepted'
+    }, 'firstName lastName email groups');
+
+    // 각 멤버의 그룹 정보를 명시적으로 필터링
+    const formattedMembers = acceptedMembers.map(member => {
+      const memberGroup = member.groups.find(g => g.groupId === groupId);
+      return {
+        _id: member._id,
+        firstName: member.firstName,
+        lastName: member.lastName,
+        email: member.email,
+        groupStatus: memberGroup.status  // groupStatus를 명시적으로 추가
+      };
+    });
+
+    console.log('Accepted members:', formattedMembers);  // 확인용 로그
+    res.status(200).json(formattedMembers);  // 명시적으로 구성된 데이터 반환
+  } catch (error) {
+    console.error('Error loading accepted members:', error);
+    res.status(500).json({ error: 'Failed to load accepted members.' });
+  }
+});
+
+
+// 그룹에서 유저 삭제 API
+app.delete('/api/groups/:groupId/remove/:userId', async (req, res) => {
+  try {
+    const { groupId, userId } = req.params;
+
+    // 그룹을 JSON 파일에서 찾기
+    const group = groups.find(g => g.id === groupId);
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    // MongoDB에서 유저 찾기
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // 그룹의 멤버 리스트에서 유저 삭제
+    group.members = group.members.filter(memberId => memberId !== userId);
+
+    // 유저의 그룹 목록에서 해당 그룹 삭제
+    user.groups = user.groups.filter(groupEntry => groupEntry.groupId !== groupId);
+
+    // 변경된 정보 저장
+    saveFile(groupsFilePath, groups); // 그룹 JSON 파일에 저장
+    await user.save(); // MongoDB에서 유저 정보 업데이트
+
+    res.status(200).json({ message: 'User removed from group.' });
+  } catch (error) {
+    console.error('Error removing user from group:', error);
+    res.status(500).json({ error: 'Failed to remove user from group.' });
+  }
+});
+
 
 
 // 그룹 내 채널 조회
@@ -536,8 +826,6 @@ app.delete('/api/groups/:groupId/channels/:channelId', async (req, res) => {
   }
 });
 
-
-
 // Super Admin이 사용자 역할을 변경하는 API (알림 전송 포함)
 app.put('/api/super-admin/promote/:id', async (req, res) => {
   const userId = req.params.id;
@@ -580,8 +868,6 @@ app.put('/api/super-admin/promote/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to promote user' });
   }
 });
-
-
 
 
 // 사용자 삭제

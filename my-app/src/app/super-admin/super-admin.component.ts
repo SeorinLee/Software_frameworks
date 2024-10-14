@@ -35,7 +35,7 @@ export class SuperAdminComponent implements OnInit {
   // 그룹 목록 로드
   loadGroups() {
     const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };
-    this.http.get<any[]>('http://localhost:4002/api/groups', { headers }).subscribe(data => {
+    this.http.get<any[]>('http://localhost:4002/api/allgroups', { headers }).subscribe(data => {
       this.groups = data;
       this.filterGroups();
     });
