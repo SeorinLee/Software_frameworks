@@ -19,8 +19,8 @@
   <!-- All Groups 섹션 -->
   <div *ngIf="showAllGroups">
     <h3>All Groups</h3>
-    <div *ngIf="filteredGroups.length > 0">
-      <div *ngFor="let group of filteredGroups" (click)="navigateToGroup(group.id)">
+    <div *ngIf="filteredGroups.length > 0" class="groups-container">
+      <div *ngFor="let group of filteredGroups" (click)="navigateToGroup(group.id)" class="group-item">
         <strong>{{ group.name }}</strong>
         <p>{{ group.description }}</p>
       </div>
@@ -33,8 +33,8 @@
   <!-- Interest Groups 섹션 -->
   <div *ngIf="showInterestGroups">
     <h3>Your Accepted Groups</h3>
-    <div *ngIf="filteredInterestGroups.length > 0">
-      <div *ngFor="let group of filteredInterestGroups" (click)="navigateToGroup(group.id)">
+    <div *ngIf="filteredInterestGroups.length > 0" class="groups-container">
+      <div *ngFor="let group of filteredInterestGroups" (click)="navigateToGroup(group.id)" class="group-item">
         <strong>{{ group.name }}</strong>
         <p>{{ group.description }}</p>
       </div>
