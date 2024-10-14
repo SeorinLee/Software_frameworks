@@ -10,6 +10,8 @@ const User = require('./models/User');  // 모델 불러오기
 const Channel = require('./models/Channel');  // Channel 모델 추가
 const bcrypt = require('bcrypt');
 const multer = require('multer');
+const User = require('./models/User');  // 모델 불러오기
+const Channel = require('./models/Channel');  // Channel 모델 추가
 
 
 app.use(bodyParser.json());
@@ -374,15 +376,17 @@ app.delete('/api/groups/:id', (req, res) => {
   }
 
   const group = groups[groupIndex];
-  if (user.roles.includes('Group Admin') && group.creator !== user.username) {
+  
+  // Super Admin 또는 Group Admin이면서 생성자인 경우에만 삭제 허용
+  if (user.roles.includes('Super Admin') || (user.roles.includes('Group Admin') && group.creator === user.username)) {
+    groups.splice(groupIndex, 1);  // 그룹 삭제
+    saveFile(groupsFilePath, groups);  // 변경된 그룹 정보를 저장
+    return res.status(200).json({ message: 'Group deleted successfully' });
+  } else {
     return res.status(403).json({ error: 'You do not have permission to delete this group.' });
   }
-
-  groups.splice(groupIndex, 1);
-  saveFile(groupsFilePath, groups);
-
-  res.status(200).json({ message: 'Group deleted successfully' });
 });
+
 
 // 그룹 조회
 app.get('/api/groups', (req, res) => {
@@ -390,6 +394,12 @@ app.get('/api/groups', (req, res) => {
   const userGroups = user.roles.includes('Super Admin') ? groups : groups.filter(group => group.creator === user.username);
   res.json(userGroups);
 });
+
+// 그룹 조회
+app.get('/api/allgroups', (req, res) => {
+  res.json(groups); // 모든 그룹을 반환
+});
+
 
 // 특정 그룹 조회
 app.get('/api/groups/:id', (req, res) => {

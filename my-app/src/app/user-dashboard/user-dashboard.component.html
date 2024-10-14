@@ -1,29 +1,46 @@
-
 <app-nav-bar></app-nav-bar>
 
+<!-- 상단 네비게이션 바 -->
 <div class="user-dashboard-navigation">
   <ul>
-    <li (click)="navigateToDashboard()" class="nav-item" [class.active]="currentPage === 'dashboard'">Dashboard</li>
-    <li (click)="navigateToAllGroups()" class="nav-item" [class.active]="currentPage === 'AllGroups'">All Groups</li>
-    <li (click)="navigateToInterestGroups()" class="nav-item" [class.active]="currentPage === 'InterestGroups'">Interest Groups</li>
+    <li (click)="showAllGroupsTab()" class="nav-item" [class.active]="showAllGroups">All Groups</li>
+    <li (click)="showInterestGroupsTab()" class="nav-item" [class.active]="showInterestGroups">Interest Groups</li>
   </ul>
 </div>
 
-  <div class="dashboard-content">
-    <h1>{{ title }}</h1>
-    
+<div class="dashboard-content">
+  <h1>{{ title }}</h1>
 
+  <!-- 검색 입력 필드 추가 -->
+  <div class="search-container">
+    <input type="text" placeholder="Search for groups..." [(ngModel)]="searchTerm" (input)="filterGroups(searchTerm); filterInterestGroups(searchTerm)" class="search-input" />
+  </div>
+
+  <!-- All Groups 섹션 -->
+  <div *ngIf="showAllGroups">
+    <h3>All Groups</h3>
     <div *ngIf="filteredGroups.length > 0">
-      <h3>Your Accepted Groups</h3>
-      <div *ngFor="let group of filteredGroups">
-        <div (click)="navigateToGroup(group.id)">
-          <strong>{{ group.name }}</strong>
-          <p>{{ group.description }}</p>
-        </div>
+      <div *ngFor="let group of filteredGroups" (click)="navigateToGroup(group.id)">
+        <strong>{{ group.name }}</strong>
+        <p>{{ group.description }}</p>
       </div>
     </div>
     <div *ngIf="filteredGroups.length === 0">
-      <p>No accepted groups found.</p>
+      <p>No groups found.</p>
     </div>
   </div>
 
+  <!-- Interest Groups 섹션 -->
+  <div *ngIf="showInterestGroups">
+    <h3>Your Accepted Groups</h3>
+    <div *ngIf="filteredInterestGroups.length > 0">
+      <div *ngFor="let group of filteredInterestGroups" (click)="navigateToGroup(group.id)">
+        <strong>{{ group.name }}</strong>
+        <p>{{ group.description }}</p>
+      </div>
+    </div>
+    <div *ngIf="filteredInterestGroups.length === 0">
+      <p>No accepted groups found.</p>
+    </div>
+  </div>
+</div>

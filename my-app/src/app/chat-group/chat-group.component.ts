@@ -22,10 +22,15 @@ export class ChatGroupComponent {
     this.loadGroups();
   }
 
+
   loadGroups() {
-    const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };
+    const user = this.authService.getStoredUser(); // 로그인한 사용자 정보 가져오기
+    const headers = { 'user': JSON.stringify(user) };
+
+    // 모든 그룹을 가져온 후 필터링
     this.http.get<any[]>('http://localhost:4002/api/groups', { headers }).subscribe(data => {
-      this.groups = data;
+      // 그룹 중 creator가 현재 로그인한 사용자와 일치하는 그룹만 필터링
+      this.groups = data.filter(group => group.creator === user.username);
     });
   }
 
