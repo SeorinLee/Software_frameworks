@@ -88,29 +88,34 @@ io.on('connection', (socket) => {
   });
 
   // 메시지 전송 처리
-  socket.on('sendMessage', async ({ channelId, username, message }) => {
-    console.log(`${username} sent message to channel ${channelId}: ${message}`);
-
+  socket.on('sendMessage', async ({ channelId, username, message, fileUrl, fileType }) => {
     try {
       const channel = await Channel.findById(channelId);
       if (!channel) {
         console.log('Channel not found');
         return;
       }
-
-      // 새로운 메시지 생성
-      const newMessage = { username, message, timestamp: new Date() };
-      channel.messages.push(newMessage);  // 메시지를 채널의 메시지 배열에 추가
-
-      // MongoDB에 변경사항 저장
+  
+      // 새로운 메시지 생성, 파일만 업로드할 경우 message는 빈 문자열로
+      const newMessage = { 
+        username, 
+        message: message || '',  // 메시지가 없는 경우 빈 문자열
+        fileUrl: fileUrl || '',  // 파일 URL이 있을 경우만 추가
+        fileType: fileType || '',  // 파일 타입이 있을 경우만 추가
+        timestamp: new Date() 
+      };
+  
+      // 메시지 저장
+      channel.messages.push(newMessage);
       await channel.save();
-
-      // 모든 사용자에게 메시지 전송
+  
+      // 클라이언트에게 메시지 전송
       io.to(channelId).emit('newMessage', newMessage);
     } catch (err) {
       console.error('Error sending message:', err);
     }
   });
+  
 
   // 사용자 연결 해제 처리
   socket.on('disconnect', () => {
@@ -169,10 +174,47 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/');  // 'uploads' 폴더에 저장
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));  // 현재 시간을 기준으로 파일명 생성
+    cb(null, Date.now() + '-' + file.originalname);  // 원래 파일명을 포함하여 파일명 생성
   }
 });
 const upload = multer({ storage: storage });
+
+const mime = require('mime-types');  // MIME 타입을 구분하기 위한 패키지
+
+// 채팅 이미지/비디오 파일 업로드 엔드포인트
+app.post('/api/channels/:channelId/upload', upload.single('file'), async (req, res) => {
+  const { channelId } = req.params;
+  const fileType = req.file.mimetype.startsWith('image') ? 'image' : 'video'; // 파일 타입 확인
+
+  try {
+    const channel = await Channel.findById(channelId);
+    if (!channel) {
+      return res.status(404).json({ error: 'Channel not found' });
+    }
+
+    // 업로드된 파일 URL을 메시지로 저장
+    if (req.file) {
+      const newMessage = {
+        username: req.body.username,
+        fileUrl: `/uploads/${req.file.filename}`,
+        fileType: fileType,
+        timestamp: new Date()
+      };
+
+      channel.messages.push(newMessage);
+      await channel.save();
+
+      // 소켓을 통해 새 메시지를 클라이언트에 전송
+      io.to(channelId).emit('newMessage', newMessage);
+      
+      res.json({ message: 'File uploaded successfully', fileUrl: `/uploads/${req.file.filename}`, fileType: fileType });
+    } else {
+      res.status(400).json({ error: 'No file uploaded' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to upload file' });
+  }
+});
 
 // 사용자 알림 추가 함수
 function addNotification(userId, message) {
@@ -182,6 +224,7 @@ function addNotification(userId, message) {
   notifications[userId].push({ message, timestamp: new Date().toISOString() });
   saveFile(notificationsFilePath, notifications);
 }
+
 
 // 서버 상태 확인 엔드포인트
 app.get('/', (req, res) => {

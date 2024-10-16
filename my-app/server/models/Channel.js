@@ -1,11 +1,14 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const messageSchema = new Schema({
-  username: { type: String, required: true },  // 메시지를 보낸 사용자
-  message: { type: String, required: true },   // 메시지 내용
-  timestamp: { type: Date, default: Date.now } // 메시지가 전송된 시간
+const messageSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  message: { type: String, required: false },  // 필수에서 선택으로 변경
+  fileUrl: { type: String },
+  fileType: { type: String },
+  timestamp: { type: Date, default: Date.now }
 });
+
 
 const channelSchema = new Schema({
   name: { type: String, required: true },
