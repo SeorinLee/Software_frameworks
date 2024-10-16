@@ -10,15 +10,20 @@
   <ul>
     <li *ngFor="let member of members">{{ member }}</li>
   </ul>
-<!-- Exit 버튼 추가 -->
-<button (click)="exitChannel()">Exit</button>
 
+  <!-- Exit 버튼 추가 -->
+  <button (click)="exitChannel()">Exit</button>
+
+  <!-- 채팅 메시지가 표시될 공간 -->
   <div class="chat-messages">
-    <!-- 채팅 메시지가 표시될 공간 -->
+    <div *ngFor="let msg of messages">
+      <strong>{{ msg.username }}:</strong> {{ msg.message }}
+    </div>
   </div>
 
+  <!-- 채팅 메시지 입력 및 전송 -->
   <div class="chat-input">
-    <input type="text" placeholder="Type your message..." />
-    <button>Send</button>
+    <input [(ngModel)]="message" type="text" placeholder="Type your message..." />
+    <button (click)="sendMessage()">Send</button> <!-- 메시지 전송 버튼 -->
   </div>
 </div>

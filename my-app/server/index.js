@@ -1,3 +1,5 @@
+const http = require('http');
+const socketIO = require('socket.io');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -10,6 +12,111 @@ const User = require('./models/User');  // 모델 불러오기
 const Channel = require('./models/Channel');  // Channel 모델 추가
 const bcrypt = require('bcrypt');
 const multer = require('multer');
+const server = http.createServer(app);  // Express 서버에 HTTP 서버 연결
+const io = socketIO(server, {
+  path: '/socket.io',  // 기본 소켓 경로
+  cors: {
+    origin: "http://localhost:4200", // 클라이언트 주소
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// channels 변수를 한 번만 선언합니다.
+const channels = {};  // 각 채널별로 유저를 관리하는 객체
+
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  // 채널 참가 처리
+  socket.on('joinChannel', async ({ channelId, username }) => {
+    console.log(`${username} joined channel ${channelId}`);
+
+    try {
+      const channel = await Channel.findById(channelId);
+      if (!channel) {
+        console.log('Channel not found');
+        return;
+      }
+
+      // 유저를 채널에 추가
+      if (!channel.members.includes(username)) {
+        channel.members.push(username);
+      }
+
+      // 참가 로그에 추가
+      channel.joinLog.push(username);
+
+      // MongoDB에 변경사항 저장
+      await channel.save();
+
+      // 소켓을 채널에 가입시키고, 업데이트된 멤버 리스트 전송
+      socket.join(channelId);
+      io.to(channelId).emit('membersUpdate', channel.members);
+      console.log('Members in channel:', channel.members);
+    } catch (err) {
+      console.error('Error joining channel:', err);
+    }
+  });
+
+  // 채널 퇴장 처리
+  socket.on('leaveChannel', async ({ channelId, username }) => {
+    console.log(`${username} left channel ${channelId}`);
+    try {
+      const channel = await Channel.findById(channelId);
+      if (!channel) {
+        console.log('Channel not found');
+        return;
+      }
+
+      // 유저를 채널에서 제거
+      channel.members = channel.members.filter(member => member !== username);
+
+      // 퇴장 로그에 추가
+      channel.leaveLog.push(username);
+
+      // MongoDB에 변경사항 저장
+      await channel.save();
+
+      // 소켓을 채널에서 나가게 하고, 업데이트된 멤버 리스트 전송
+      socket.leave(channelId);
+      io.to(channelId).emit('membersUpdate', channel.members);
+      console.log('Members after leaving:', channel.members);
+    } catch (err) {
+      console.error('Error leaving channel:', err);
+    }
+  });
+
+  // 메시지 전송 처리
+  socket.on('sendMessage', async ({ channelId, username, message }) => {
+    console.log(`${username} sent message to channel ${channelId}: ${message}`);
+
+    try {
+      const channel = await Channel.findById(channelId);
+      if (!channel) {
+        console.log('Channel not found');
+        return;
+      }
+
+      // 새로운 메시지 생성
+      const newMessage = { username, message, timestamp: new Date() };
+      channel.messages.push(newMessage);  // 메시지를 채널의 메시지 배열에 추가
+
+      // MongoDB에 변경사항 저장
+      await channel.save();
+
+      // 모든 사용자에게 메시지 전송
+      io.to(channelId).emit('newMessage', newMessage);
+    } catch (err) {
+      console.error('Error sending message:', err);
+    }
+  });
+
+  // 사용자 연결 해제 처리
+  socket.on('disconnect', () => {
+    console.log('A user disconnected:', socket.id);
+  });
+});
 
 
 app.use(bodyParser.json());
@@ -55,7 +162,6 @@ function saveFile(filePath, data) {
 let users = loadFile(usersFilePath);
 let notifications = loadFile(notificationsFilePath);
 let groups = loadFile(groupsFilePath);
-let channels = loadFile(channelsFilePath);
 
 // Multer 설정 (이미지 저장 경로 및 파일 이름 설정)
 const storage = multer.diskStorage({
@@ -810,8 +916,6 @@ app.get('/api/users/all', async (req, res) => {
 
 
 // 서버 실행
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-
-
