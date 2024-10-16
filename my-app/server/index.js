@@ -184,7 +184,8 @@ const mime = require('mime-types');  // MIME 타입을 구분하기 위한 패�
 // 채팅 이미지/비디오 파일 업로드 엔드포인트
 app.post('/api/channels/:channelId/upload', upload.single('file'), async (req, res) => {
   const { channelId } = req.params;
-  const fileType = req.file.mimetype.startsWith('image') ? 'image' : 'video'; // 파일 타입 확인
+  const { message, username } = req.body;
+  const fileType = req.file ? (req.file.mimetype.startsWith('image') ? 'image' : 'video') : null; // 파일 타입 확인
 
   try {
     const channel = await Channel.findById(channelId);
@@ -192,29 +193,25 @@ app.post('/api/channels/:channelId/upload', upload.single('file'), async (req, r
       return res.status(404).json({ error: 'Channel not found' });
     }
 
-    // 업로드된 파일 URL을 메시지로 저장
-    if (req.file) {
-      const newMessage = {
-        username: req.body.username,
-        fileUrl: `/uploads/${req.file.filename}`,
-        fileType: fileType,
-        timestamp: new Date()
-      };
+    // 업로드된 파일 URL을 메시지로 저장 (파일이 있을 때만)
+    const newMessage = {
+      username: username,
+      message: message || '',  // 텍스트 메시지
+      fileUrl: req.file ? `/uploads/${req.file.filename}` : null,  // 파일 URL (없으면 null)
+      fileType: fileType,  // 파일 타입 (없으면 null)
+      timestamp: new Date()
+    };
 
-      channel.messages.push(newMessage);
-      await channel.save();
+    channel.messages.push(newMessage);
+    await channel.save();
 
-      // 소켓을 통해 새 메시지를 클라이언트에 전송
-      io.to(channelId).emit('newMessage', newMessage);
-      
-      res.json({ message: 'File uploaded successfully', fileUrl: `/uploads/${req.file.filename}`, fileType: fileType });
-    } else {
-      res.status(400).json({ error: 'No file uploaded' });
-    }
+    io.to(channelId).emit('newMessage', newMessage);
+    res.json({ message: 'File and message uploaded successfully', fileUrl: newMessage.fileUrl, fileType: newMessage.fileType });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to upload file' });
+    res.status(500).json({ error: 'Failed to upload file and message' });
   }
 });
+
 
 // 사용자 알림 추가 함수
 function addNotification(userId, message) {

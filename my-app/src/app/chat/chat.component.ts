@@ -116,6 +116,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
   
+  
 
   handleFileInput(event: Event): void {
     const input = event.target as HTMLInputElement;
