@@ -1,6 +1,6 @@
 <div class="nav-bar">
   <div class="logo">
-    <img [src]="user.profilePictureUrl" alt="Profile Picture">
+    <img *ngIf="user?.profilePictureUrl" [src]="user.profilePictureUrl" alt="Profile Picture">
     <h2 *ngIf="user">{{ user.firstName }} {{ user.lastName }}</h2> <!-- 사용자 이름 표시 -->
   </div>
   <ul class="nav-links">

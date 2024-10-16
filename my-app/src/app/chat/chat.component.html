@@ -16,7 +16,7 @@
           <!-- Exit 버튼 추가 -->
           <button class="btn btn-danger my-2" (click)="exitChannel()">Exit</button>
         </div>
-        
+
         <!-- 비디오 통화 화면 (통화가 시작되면 나타나도록 *ngIf 사용) -->
         <div class="mt-4" *ngIf="isCallActive">
           <video #localVideo autoplay playsinline style="width: 100%;"></video>
@@ -76,9 +76,9 @@
           <div class="card-footer text-muted d-flex justify-content-start align-items-center p-3">
             <div class="input-group mb-0">
               <input [(ngModel)]="message" type="text" class="form-control" placeholder="Type message" />
-              <button (click)="sendMessage()" class="btn btn-outline-primary" type="button">
-                <i class="fa-solid fa-image"></i>  <!-- 아이콘 버튼으로 전송 -->
-              </button>
+<button data-mdb-button-init data-mdb-ripple-init class="btn btn-warning" type="button" id="button-addon2" style="padding-top: .55rem;" (click)="sendMessage()">
+send
+</button>
             </div>
           </div>
         </div>

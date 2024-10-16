@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { GroupManagementComponent } from './group-management.component';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('GroupManagementComponent', () => {
   let component: GroupManagementComponent;
@@ -8,9 +9,8 @@ describe('GroupManagementComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GroupManagementComponent]
-    })
-    .compileComponents();
+      imports: [GroupManagementComponent, HttpClientTestingModule, RouterTestingModule]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(GroupManagementComponent);
     component = fixture.componentInstance;

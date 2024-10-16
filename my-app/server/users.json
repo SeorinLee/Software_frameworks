@@ -146,5 +146,44 @@
     ],
     "groups": [],
     "dob": "2024-10-11"
+  },
+  {
+    "id": "12",
+    "username": "s9232",
+    "password": "$2b$10$lnUL0WjYnTuPpvjlW6ZQh.7.Xz2rm79zSZkm3yKZgh0qxtAyimIDC",
+    "firstName": "test",
+    "lastName": "test",
+    "email": "s@test.com",
+    "roles": [
+      "Super Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-17"
+  },
+  {
+    "id": "13",
+    "username": "g123231",
+    "password": "$2b$10$kxcrJmjqqcBXYrZdYMAwbOQ/3h0c7meXP2NJJ4KQ2kGUW/6NdwbbW",
+    "firstName": "ss",
+    "lastName": "ss",
+    "email": "g@teest.com",
+    "roles": [
+      "Group Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-19"
+  },
+  {
+    "id": "14",
+    "username": "s21321321sadsdas",
+    "password": "$2b$10$L2FzdI2Yejp/gKhd27zxEO7E/s5chfm/w0GTRiF74NtwcHN8TZray",
+    "firstName": "Seorin",
+    "lastName": "Lee",
+    "email": "s1@test.com",
+    "roles": [
+      "Super Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-10"
   }
 ]
