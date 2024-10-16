@@ -1,0 +1,24 @@
+<div class="chat-container">
+  <h2>Welcome to the Chat Room</h2>
+  <p>Channel ID: {{ channelId }}</p>
+
+  <!-- 참가 메시지 표시 -->
+  <p *ngIf="joinMessage">{{ joinMessage }}</p>
+
+  <!-- 참가한 유저 목록 -->
+  <h3>Users in this channel:</h3>
+  <ul>
+    <li *ngFor="let member of members">{{ member }}</li>
+  </ul>
+<!-- Exit 버튼 추가 -->
+<button (click)="exitChannel()">Exit</button>
+
+  <div class="chat-messages">
+    <!-- 채팅 메시지가 표시될 공간 -->
+  </div>
+
+  <div class="chat-input">
+    <input type="text" placeholder="Type your message..." />
+    <button>Send</button>
+  </div>
+</div>

@@ -557,6 +557,122 @@ app.delete('/api/groups/:groupId/channels/:channelId', async (req, res) => {
 });
 
 
+// 채널 참여
+app.post('/api/groups/:groupId/channels/:channelId/join', async (req, res) => {
+  let { channelId } = req.params;
+  const userHeader = req.headers.user;
+
+  if (!userHeader) {
+    return res.status(400).json({ error: 'User information missing in headers.' });
+  }
+
+  let user;
+  try {
+    user = JSON.parse(userHeader);  // 사용자 정보 파싱
+  } catch (err) {
+    return res.status(400).json({ error: 'Invalid user information in headers.' });
+  }
+
+  if (!channelId || !mongoose.Types.ObjectId.isValid(channelId)) {
+    return res.status(400).json({ error: 'Invalid channel ID' });
+  }
+
+  channelId = new mongoose.Types.ObjectId(channelId);  // ObjectId로 변환
+
+  try {
+    const channel = await Channel.findById(channelId);
+    if (!channel) {
+      return res.status(404).json({ error: 'Channel not found' });
+    }
+
+    // 채널의 members가 undefined인 경우 빈 배열로 초기화
+    if (!channel.members) {
+      channel.members = [];
+    }
+
+    // 사용자가 이미 채널에 참가했는지 확인
+    if (channel.members.includes(user.username)) {
+      return res.status(400).json({ error: 'User already joined the channel' });
+    }
+
+    // 유저를 members에 추가
+    channel.members.push(user.username);
+    await channel.save();
+
+    res.status(200).json({ message: 'Successfully joined the channel', members: channel.members });
+  } catch (err) {
+    console.error('Error joining channel:', err);
+    res.status(500).json({ error: 'Failed to join the channel' });
+  }
+});
+
+// 특정 채널 정보 (참가한 유저 목록 및 참가 메시지 반환)
+app.get('/api/channels/:channelId', async (req, res) => {
+  const { channelId } = req.params;
+
+  try {
+    const channel = await Channel.findById(channelId);
+    if (!channel) {
+      return res.status(404).json({ error: 'Channel not found' });
+    }
+
+    // 참가한 유저 목록과 최근 참가 메시지 반환
+    res.status(200).json({
+      members: channel.members,
+      joinMessage: `${channel.members[channel.members.length - 1]} 님이 참가하였습니다`
+    });
+  } catch (err) {
+    console.error('Error fetching channel data:', err);
+    res.status(500).json({ error: 'Failed to fetch channel data' });
+  }
+});
+
+// 채널 퇴장
+app.post('/api/channels/:channelId/exit', async (req, res) => {
+  const { channelId } = req.params;
+  const userHeader = req.headers.user;
+
+  if (!userHeader) {
+    return res.status(400).json({ error: 'User information missing in headers.' });
+  }
+
+  let user;
+  try {
+    user = JSON.parse(userHeader);  // 사용자 정보 파싱
+  } catch (err) {
+    return res.status(400).json({ error: 'Invalid user information in headers.' });
+  }
+
+  if (!channelId || !mongoose.Types.ObjectId.isValid(channelId)) {
+    return res.status(400).json({ error: 'Invalid channel ID' });
+  }
+
+  try {
+    const channel = await Channel.findById(channelId);
+    if (!channel) {
+      return res.status(404).json({ error: 'Channel not found' });
+    }
+
+    // 채널에서 유저 제거
+    const memberIndex = channel.members.indexOf(user.username);
+    if (memberIndex !== -1) {
+      channel.members.splice(memberIndex, 1);
+      await channel.save();
+
+      res.status(200).json({
+        message: 'Successfully exited the channel',
+        exitMessage: `${user.username} 님이 퇴장하였습니다`,  // 퇴장 메시지
+        members: channel.members
+      });
+    } else {
+      res.status(400).json({ error: 'User not found in the channel' });
+    }
+  } catch (err) {
+    console.error('Error exiting channel:', err);
+    res.status(500).json({ error: 'Failed to exit the channel' });
+  }
+});
+
 
 // Super Admin이 사용자 역할을 변경하는 API (알림 전송 포함)
 app.put('/api/super-admin/promote/:id', async (req, res) => {

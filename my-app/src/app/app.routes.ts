@@ -12,6 +12,7 @@ import { NotificationComponent } from './notification/notification.component';
 import { ChannelManagementComponent } from './channel-management/channel-management.component';
 import { AuthGuard } from './auth.guard';
 import { GroupDetailComponent } from './group-detail/group-detail.component';
+import { ChatComponent } from './chat/chat.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -32,7 +33,7 @@ export const routes: Routes = [
 
 
   { path: 'groups/:id', component: GroupDetailComponent, canActivate: [AuthGuard], data: { role: ['super admin', 'group admin', 'user'] } }, // 그룹 세부 페이지 추가
-
+  { path: 'chat/:id', component: ChatComponent },  // 채팅 페이지 라우팅
 
   { path: '**', redirectTo: 'login' }
 ];

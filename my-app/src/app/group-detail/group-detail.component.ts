@@ -1,3 +1,5 @@
+
+
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -5,6 +7,7 @@ import { NavBarComponent } from '../nav-bar/nav-bar.component';
 import { CommonModule } from '@angular/common'; // Angular CommonModule 추가
 import { FormsModule } from '@angular/forms'; // FormsModule 추가
 import { AuthService } from '../auth.service';  // AuthService 임포트 추가
+import { Router } from '@angular/router';  // Router 추가
 
 @Component({
   selector: 'app-group-detail',
@@ -26,7 +29,8 @@ export class GroupDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
-    private authService: AuthService  // AuthService 주입
+    private authService: AuthService, // AuthService 주입
+    private router: Router  // Router 주입
   ) {}
 
   ngOnInit() {
@@ -105,6 +109,28 @@ export class GroupDetailComponent implements OnInit {
       alert('Please enter a valid email.');
     }
   }
+  
+
+  joinChannel(channelId: string, groupId: string) {
+    console.log('Joining channel with ID:', channelId); // 디버깅 로그
+    if (!channelId) {
+      console.error('Invalid channelId');
+      return;
+    }
+    const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };  // 사용자 정보를 헤더에 추가
+    this.http.post(`http://localhost:4002/api/groups/${groupId}/channels/${channelId}/join`, {}, { headers })
+      .subscribe({
+        next: (response) => {
+          alert('Successfully joined the channel!');
+          this.router.navigate([`/chat/${channelId}`], { queryParams: { groupId: this.groupId } });
+        },
+        error: (error) => {
+          console.error('Error joining channel:', error);
+          alert('Failed to join the channel. Please try again.');
+        }
+      });
+  }
+  
 
   // 탭 전환: 멤버
   showMembersTab() {
