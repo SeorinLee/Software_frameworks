@@ -501,6 +501,26 @@ app.get('/api/groups/:groupId/channels', async (req, res) => {
   }
 });
 
+// 그룹 내 모든 채널 조회 (권한과 상관없이 모든 채널 반환)
+app.get('/api/groups/:groupId/all-channels', async (req, res) => {
+  const { groupId } = req.params;
+  
+  try {
+    // 해당 그룹의 모든 채널을 조회
+    const groupChannels = await Channel.find({ groupId });
+
+    if (!groupChannels || groupChannels.length === 0) {
+      return res.status(404).json({ error: 'No channels found for this group' });
+    }
+
+    res.json(groupChannels);
+  } catch (err) {
+    console.error('Error fetching channels:', err);
+    res.status(500).json({ error: 'Failed to fetch channels' });
+  }
+});
+
+
 
 // 채널 삭제
 app.delete('/api/groups/:groupId/channels/:channelId', async (req, res) => {

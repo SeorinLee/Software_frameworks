@@ -116,20 +116,20 @@ export class GroupDetailComponent implements OnInit {
   showChannelsTab() {
     this.showMembers = false;
     this.showChannels = true;
-    this.loadGroupChannels();
+    this.loadAllGroupChannels();
   }
 
   // 그룹 채널 로드
-  loadGroupChannels() {
-    const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };  // 사용자 정보를 헤더에 추가
-    this.http.get<any[]>(`http://localhost:4002/api/groups/${this.groupId}/channels`, { headers })
+  loadAllGroupChannels() {
+    this.http.get<any[]>(`http://localhost:4002/api/groups/${this.groupId}/all-channels`)
       .subscribe({
         next: (data: any[]) => {
-          this.groupChannels = data;
+          this.groupChannels = data;  // 받아온 모든 채널 데이터를 저장
         },
         error: (error) => {
-          console.error('Error loading group channels:', error);
+          console.error('Error loading all group channels:', error);
         }
       });
   }
+  
 }
