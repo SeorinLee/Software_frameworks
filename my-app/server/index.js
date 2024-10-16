@@ -95,15 +95,21 @@ io.on('connection', (socket) => {
         console.log('Channel not found');
         return;
       }
-  
-      // 새로운 메시지 생성, 파일만 업로드할 경우 message는 빈 문자열로
-      const newMessage = { 
-        username, 
-        message: message || '',  // 메시지가 없는 경우 빈 문자열
-        fileUrl: fileUrl || '',  // 파일 URL이 있을 경우만 추가
-        fileType: fileType || '',  // 파일 타입이 있을 경우만 추가
-        timestamp: new Date() 
-      };
+
+   // 사용자 정보를 MongoDB에서 가져와서 프로필 사진 URL을 포함
+   const user = await User.findOne({ username: username });
+   const profilePictureUrl = user && user.profilePictureUrl ? user.profilePictureUrl : 'images/chatlogo.png';  // 기본 프로필 사진 설정
+
+   // 새로운 메시지 생성, 파일만 업로드할 경우 message는 빈 문자열로
+   const newMessage = {
+     username,
+     message: message || '',  // 메시지가 없는 경우 빈 문자열
+     fileUrl: fileUrl || '',  // 파일 URL이 있을 경우만 추가
+     fileType: fileType || '',  // 파일 타입이 있을 경우만 추가
+     profilePictureUrl,  // 프로필 사진 URL 추가
+     timestamp: new Date()
+   };
+
   
       // 메시지 저장
       channel.messages.push(newMessage);

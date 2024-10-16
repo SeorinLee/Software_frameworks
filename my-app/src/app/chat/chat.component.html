@@ -16,19 +16,22 @@
 
   <!-- 채팅 메시지가 표시될 공간 -->
   <div class="chat-messages">
-    <div *ngFor="let msg of messages">
+    <div *ngFor="let msg of messages" class="message-item">
+      <img *ngIf="msg.profilePictureUrl" [src]="msg.profilePictureUrl" alt="Profile Picture" class="profile-picture" />
+  
       <strong>{{ msg.username }}:</strong> 
       
       <!-- 메시지 내용 표시 -->
       <span *ngIf="msg.message">{{ msg.message }}</span>
-
+  
       <!-- 이미지 및 비디오 파일 표시 -->
       <div *ngIf="msg.fileUrl">
-        <img *ngIf="msg.fileType === 'image'" [src]="msg.fileUrl" alt="Image" style="max-width: 200px; max-height: 200px;" />
-        <video *ngIf="msg.fileType === 'video'" [src]="msg.fileUrl" controls width="200"></video>
+        <img *ngIf="msg.fileType === 'image'" [src]="msg.fileUrl" alt="Image" class="message-image" />
+        <video *ngIf="msg.fileType === 'video'" [src]="msg.fileUrl" controls class="message-video"></video>
       </div>
     </div>
   </div>
+  
 
   <!-- 채팅 메시지 입력 및 전송 -->
   <div class="chat-input">

@@ -22,9 +22,19 @@ export class ChatComponent implements OnInit, OnDestroy {
   joinMessage: string = '';
   members: string[] = [];  
   message: string = '';  
-  messages: { username: string, message: string, fileUrl?: string, fileType?: string }[] = [];  // 파일 URL과 타입 추가
+
+  // 메시지 타입에 profilePictureUrl 속성을 추가합니다.
+  messages: { 
+    username: string, 
+    message: string, 
+    fileUrl?: string, 
+    fileType?: string, 
+    profilePictureUrl?: string  // 프로필 사진 URL 추가
+  }[] = [];  
+
   socket!: Socket;  
-  fileToUpload: File | null = null;    
+  fileToUpload: File | null = null;
+      
 
   constructor(
     private route: ActivatedRoute, 
@@ -41,10 +51,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.loadMessages();  // 메시지 기록 불러오기 추가
   
     if (isPlatformBrowser(this.platformId)) {
-      if (!this.socket || !this.socket.connected)
-      this.socket = io('http://localhost:4002', {
-        path: '/socket.io'
-      });
+      if (!this.socket || !this.socket.connected) {
+        this.socket = io('http://localhost:4002', {
+          path: '/socket.io'
+        });
+      }
       console.log('Socket connected:', this.socket.connected);  
   
       const user = this.authService.getStoredUser();
@@ -55,8 +66,14 @@ export class ChatComponent implements OnInit, OnDestroy {
       });
   
       // 메시지 수신 처리
-      this.socket.on('newMessage', (data: { username: string, message: string }) => {
-        this.messages.push(data);  
+      this.socket.on('newMessage', (data: { username: string, message: string, profilePictureUrl?: string, fileUrl?: string, fileType?: string }) => {
+        this.messages.push({
+          username: data.username,
+          message: data.message,
+          profilePictureUrl: data.profilePictureUrl ? `http://localhost:4002${data.profilePictureUrl}` : 'images/chatlogo.png',  // 기본 프로필 사진 설정
+          fileUrl: data.fileUrl,
+          fileType: data.fileType
+        });
       });
     }
   }
@@ -99,6 +116,7 @@ export class ChatComponent implements OnInit, OnDestroy {
           console.log('File and message uploaded successfully', response);
           const fileUrl = response.fileUrl ? `http://localhost:4002${response.fileUrl}` : null;  // 파일 URL 확인
           const fileType = response.fileType || null;
+          const profilePictureUrl = user?.profilePictureUrl ? `http://localhost:4002${user.profilePictureUrl}` : 'images/chatlogo.png';  // 프로필 사진 URL 가져오기
   
           // 서버로부터 파일 URL과 파일 유형을 받은 후 소켓으로 메시지를 전송
           this.socket.emit('sendMessage', {
@@ -106,7 +124,8 @@ export class ChatComponent implements OnInit, OnDestroy {
             username: user?.username,
             message: this.message.trim(),  // 텍스트 메시지
             fileUrl: fileUrl,  // 파일 URL (없을 수 있음)
-            fileType: fileType  // 파일 타입 (없을 수 있음)
+            fileType: fileType,  // 파일 타입 (없을 수 있음)
+            profilePictureUrl: profilePictureUrl  // 프로필 사진 URL 추가
           });
   
           // 전송 후 입력 필드 초기화
@@ -119,15 +138,17 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
   
   // 채널 메시지 기록 불러오기 함수
-loadMessages(): void {
-  this.http.get<any[]>(`http://localhost:4002/api/channels/${this.channelId}/messages`)
-    .subscribe(messages => {
-      this.messages = messages;  // 가져온 메시지를 저장
-    }, error => {
-      console.error('Failed to load messages:', error);
-    });
-}
-  
+  loadMessages(): void {
+    this.http.get<any[]>(`http://localhost:4002/api/channels/${this.channelId}/messages`)
+      .subscribe(messages => {
+        this.messages = messages.map(msg => ({
+          ...msg,
+          profilePictureUrl: msg.profilePictureUrl ? `http://localhost:4002${msg.profilePictureUrl}` : 'images/chatlogo.png'  // 기본 프로필 사진 설정
+        }));
+      }, error => {
+        console.error('Failed to load messages:', error);
+      });
+  }
 
   handleFileInput(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -135,7 +156,6 @@ loadMessages(): void {
       this.fileToUpload = input.files[0];
     }
   }
-
 
   exitChannel() {
     const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };
