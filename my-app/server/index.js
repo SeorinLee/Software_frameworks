@@ -28,6 +28,21 @@ const channels = {};  // 각 채널별로 유저를 관리하는 객체
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
+    // WebRTC Offer 이벤트 처리
+    socket.on('offer', (data) => {
+      socket.to(data.channelId).emit('offer', data.offer);
+    });
+  
+    // WebRTC Answer 이벤트 처리
+    socket.on('answer', (data) => {
+      socket.to(data.channelId).emit('answer', data.answer);
+    });
+  
+    // ICE Candidate 이벤트 처리
+    socket.on('candidate', (data) => {
+      socket.to(data.channelId).emit('candidate', data.candidate);
+    });
+
   // 채널 참가 처리
   socket.on('joinChannel', async ({ channelId, username }) => {
     console.log(`${username} joined channel ${channelId}`);

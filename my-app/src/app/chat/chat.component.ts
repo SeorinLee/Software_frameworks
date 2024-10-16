@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';  
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth.service';  
@@ -17,26 +17,34 @@ import { PLATFORM_ID } from '@angular/core';
   imports: [CommonModule, RouterModule, FormsModule],  
 })
 export class ChatComponent implements OnInit, OnDestroy {
+  @ViewChild('localVideo') localVideo!: ElementRef;
+  @ViewChild('remoteVideo') remoteVideo!: ElementRef;
+  
   channelId: string = '';
   groupId: string = '';  
   joinMessage: string = '';
   members: string[] = [];  
   message: string = '';  
   currentUser: any;
-  channelName: string = '';  // 채널 이름 변수 추가
+  channelName: string = '';  
+  isCallActive = false; 
 
-  // 메시지 타입에 profilePictureUrl 속성을 추가합니다.
+  // 메시지 타입에 profilePictureUrl, fileUrl, fileType 추가
   messages: { 
     username: string, 
     message: string, 
     fileUrl?: string, 
     fileType?: string, 
-    profilePictureUrl?: string  // 프로필 사진 URL 추가
+    profilePictureUrl?: string 
   }[] = [];  
 
   socket!: Socket;  
   fileToUpload: File | null = null;
-      
+
+  // WebRTC 관련 변수
+  localStream!: MediaStream;
+  remoteStream!: MediaStream;
+  peerConnection!: RTCPeerConnection;
 
   constructor(
     private route: ActivatedRoute, 
@@ -45,6 +53,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
+
 
   ngOnInit(): void {
     this.channelId = this.route.snapshot.paramMap.get('id') || '';
@@ -78,6 +87,10 @@ export class ChatComponent implements OnInit, OnDestroy {
           fileType: data.fileType
         });
       });
+            // 상대방이 통화를 종료했을 때 처리
+            this.socket.on('endCall', () => {
+              this.endCall(); // 통화 종료
+            });
     }
   }
   
@@ -89,6 +102,113 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
+ // 로컬 스트림 시작 (startCall 버튼을 눌러야만 설정)
+ async startLocalStream(): Promise<void> {
+  try {
+    this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    if (this.localVideo) { // localVideo가 정의된 경우에만 접근
+      this.localVideo.nativeElement.srcObject = this.localStream;
+    }
+  } catch (error) {
+    console.error('Error accessing media devices:', error);
+    throw error;
+  }
+}
+
+// WebRTC 연결 생성
+createPeerConnection(): void {
+  const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+  this.peerConnection = new RTCPeerConnection(configuration);
+
+  this.peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+      this.socket.emit('candidate', { channelId: this.channelId, candidate: event.candidate });
+    }
+  };
+
+  this.peerConnection.ontrack = (event) => {
+    this.remoteStream = event.streams[0];
+    if (this.remoteVideo) { // remoteVideo가 정의된 경우에만 접근
+      this.remoteVideo.nativeElement.srcObject = this.remoteStream;
+    }
+  };
+
+  this.localStream.getTracks().forEach(track => {
+    this.peerConnection.addTrack(track, this.localStream);
+  });
+}
+
+// WebRTC Offer 처리
+async handleOffer(offer: RTCSessionDescriptionInit) {
+  this.createPeerConnection();
+  await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+
+  const answer = await this.peerConnection.createAnswer();
+  await this.peerConnection.setLocalDescription(answer);
+
+  this.socket.emit('answer', { channelId: this.channelId, answer });
+}
+
+// WebRTC Answer 처리
+async handleAnswer(answer: RTCSessionDescriptionInit) {
+  await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+}
+
+// ICE Candidate 처리
+handleCandidate(candidate: RTCIceCandidateInit) {
+  this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+}
+
+// 영상통화 시작 버튼 클릭 시 호출
+async startCall(): Promise<void> {
+  try {
+    await this.startLocalStream();
+
+    if (!this.peerConnection) {
+      this.createPeerConnection();  // WebRTC 연결을 생성
+    }
+
+    const offer = await this.peerConnection.createOffer();  // Offer 생성
+    await this.peerConnection.setLocalDescription(offer);  // Local Description 설정
+  
+    // 서버로 offer 전송
+    this.socket.emit('offer', { channelId: this.channelId, offer });
+
+    this.isCallActive = true;  // 통화 시작 시 비디오 화면 표시
+  } catch (error) {
+    console.error('Error starting call:', error);
+  }
+}
+
+// 영상통화 종료
+endCall(): void {
+  this.socket.emit('endCall', { channelId: this.channelId });
+
+  if (this.peerConnection) {
+    this.peerConnection.close();
+    this.peerConnection = null as any;
+  }
+
+  if (this.localStream) {
+    this.localStream.getTracks().forEach(track => track.stop());
+    this.localStream = null as any;
+    if (this.localVideo) {
+      this.localVideo.nativeElement.srcObject = null; // 로컬 비디오 초기화
+    }
+  }
+
+  if (this.remoteStream) {
+    this.remoteStream.getTracks().forEach(track => track.stop());
+    this.remoteStream = null as any;
+    if (this.remoteVideo) {
+      this.remoteVideo.nativeElement.srcObject = null; // 원격 비디오 초기화
+    }
+  }
+
+  this.isCallActive = false;  // 통화 종료 시 비디오 화면 숨기기
+}
+
+
   loadChannelData() {
     const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };
     this.http.get<any>(`http://localhost:4002/api/channels/${this.channelId}`, { headers }).subscribe(data => {
@@ -97,6 +217,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.channelName = data.channelName; 
     });
   }
+
+  
 
   sendMessage(): void {
     const user = this.authService.getStoredUser();
@@ -160,6 +282,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.fileToUpload = input.files[0];
     }
   }
+
+  
 
   exitChannel() {
     const headers = { 'user': JSON.stringify(this.authService.getStoredUser()) };
