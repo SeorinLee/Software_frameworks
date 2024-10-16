@@ -792,7 +792,6 @@ app.get('/api/channels/:channelId', async (req, res) => {
     // 참가한 유저 목록과 최근 참가 메시지 반환
     res.status(200).json({
       members: channel.members,
-      joinMessage: `${channel.members[channel.members.length - 1]} 님이 참가하였습니다`
     });
   } catch (err) {
     console.error('Error fetching channel data:', err);
@@ -834,7 +833,7 @@ app.post('/api/channels/:channelId/exit', async (req, res) => {
 
       res.status(200).json({
         message: 'Successfully exited the channel',
-        exitMessage: `${user.username} 님이 퇴장하였습니다`,  // 퇴장 메시지
+        exitMessage: `Exit, thank you `,  // 퇴장 메시지
         members: channel.members
       });
     } else {
@@ -980,6 +979,7 @@ app.get('/api/users/all', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch users from MongoDB' });
   }
 });
+
 
 
 // 서버 실행

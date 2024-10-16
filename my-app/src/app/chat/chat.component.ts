@@ -22,6 +22,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   joinMessage: string = '';
   members: string[] = [];  
   message: string = '';  
+  currentUser: any;
+  channelName: string = '';  // 채널 이름 변수 추가
 
   // 메시지 타입에 profilePictureUrl 속성을 추가합니다.
   messages: { 
@@ -47,6 +49,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.channelId = this.route.snapshot.paramMap.get('id') || '';
     this.groupId = this.route.snapshot.queryParamMap.get('groupId') || '';  
+    this.currentUser = this.authService.getStoredUser();
     this.loadChannelData();
     this.loadMessages();  // 메시지 기록 불러오기 추가
   
@@ -91,6 +94,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.http.get<any>(`http://localhost:4002/api/channels/${this.channelId}`, { headers }).subscribe(data => {
       this.joinMessage = data.joinMessage;  
       this.members = data.members;  
+      this.channelName = data.channelName; 
     });
   }
 

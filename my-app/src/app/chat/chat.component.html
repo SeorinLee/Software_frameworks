@@ -1,42 +1,82 @@
-<div class="chat-container">
-  <h2>Welcome to the Chat Room</h2>
-  <p>Channel ID: {{ channelId }}</p>
+<section>
+  <div class="container py-5">
+    <div class="row d-flex justify-content-center">
+      <div class="col-md-8 col-lg-6 col-xl-4">
 
-  <!-- 참가 메시지 표시 -->
-  <p *ngIf="joinMessage">{{ joinMessage }}</p>
+        <!-- 기존 chat-container 포함 -->
+        <div class="chat-container">
+          <h2>Welcome</h2>
 
-  <!-- 참가한 유저 목록 -->
-  <h3>Users in this channel:</h3>
-  <ul>
-    <li *ngFor="let member of members">{{ member }}</li>
-  </ul>
 
-  <!-- Exit 버튼 추가 -->
-  <button (click)="exitChannel()">Exit</button>
+          <!-- 참가한 유저 목록 -->
+          <h3>Users in this channel:</h3>
+          <ul>
+            <li *ngFor="let member of members">{{ member }}</li>
+          </ul>
 
-  <!-- 채팅 메시지가 표시될 공간 -->
-  <div class="chat-messages">
-    <div *ngFor="let msg of messages" class="message-item">
-      <img *ngIf="msg.profilePictureUrl" [src]="msg.profilePictureUrl" alt="Profile Picture" class="profile-picture" />
-  
-      <strong>{{ msg.username }}:</strong> 
-      
-      <!-- 메시지 내용 표시 -->
-      <span *ngIf="msg.message">{{ msg.message }}</span>
-  
-      <!-- 이미지 및 비디오 파일 표시 -->
-      <div *ngIf="msg.fileUrl">
-        <img *ngIf="msg.fileType === 'image'" [src]="msg.fileUrl" alt="Image" class="message-image" />
-        <video *ngIf="msg.fileType === 'video'" [src]="msg.fileUrl" controls class="message-video"></video>
+          <!-- Exit 버튼 추가 -->
+          <button class="btn btn-danger my-2" (click)="exitChannel()">Exit</button>
+        </div>
+
+        <!-- 카드 디자인을 기반으로 하는 채팅 UI -->
+        <div class="card mt-4">
+          <div class="card-header d-flex justify-content-between align-items-center p-3"
+               style="border-top: 4px solid #ffa900;">
+            <h5 class="mb-0">Chat messages</h5>
+            <div class="d-flex flex-row align-items-center">
+              <span class="badge bg-warning me-3">{{ messages.length }}</span>
+              <label for="file-upload" class="btn btn-outline-primary">  <!-- 아이콘 버튼으로 파일 선택 -->
+                <i class="fa-solid fa-image"></i>
+              </label>
+              <input id="file-upload" type="file" (change)="handleFileInput($event)" style="display: none;" />
+            </div>
+          </div>
+
+          <!-- 메시지 리스트 -->
+          <div class="card-body" style="position: relative; height: 400px; overflow-y: auto;">
+            <div *ngFor="let msg of messages">
+              <!-- 상대방 메시지 -->
+              <div *ngIf="msg.username !== currentUser?.username" class="d-flex flex-row justify-content-start mb-3">
+                <img [src]="msg.profilePictureUrl || 'images/chatlogo.png'" alt="avatar" style="width: 45px; height: 100%;">
+                <div>
+                  <p class="small p-2 ms-3 mb-3 rounded-3 bg-body-tertiary">{{ msg.message }}</p>
+                  
+                  <!-- 이미지 및 비디오 파일 표시 -->
+                  <div *ngIf="msg.fileUrl">
+                    <img *ngIf="msg.fileType === 'image'" [src]="msg.fileUrl" alt="Image" class="message-image" />
+                    <video *ngIf="msg.fileType === 'video'" [src]="msg.fileUrl" controls class="message-video"></video>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 본인 메시지 -->
+              <div *ngIf="msg.username === currentUser?.username" class="d-flex flex-row justify-content-end mb-4">
+                <div>
+                  <p class="small p-2 me-3 mb-3 text-white rounded-3 bg-warning">{{ msg.message }}</p>
+                  
+                  <!-- 이미지 및 비디오 파일 표시 -->
+                  <div *ngIf="msg.fileUrl">
+                    <img *ngIf="msg.fileType === 'image'" [src]="msg.fileUrl" alt="Image" class="message-image" />
+                    <video *ngIf="msg.fileType === 'video'" [src]="msg.fileUrl" controls class="message-video"></video>
+                  </div>
+                </div>
+                <img [src]="msg.profilePictureUrl || 'images/chatlogo.png'" alt="avatar" style="width: 45px; height: 100%;">
+              </div>
+            </div>
+          </div>
+
+          <!-- 채팅 메시지 입력 -->
+          <div class="card-footer text-muted d-flex justify-content-start align-items-center p-3">
+            <div class="input-group mb-0">
+              <input [(ngModel)]="message" type="text" class="form-control" placeholder="Type message" />
+              <button (click)="sendMessage()" class="btn btn-outline-primary" type="button">
+                <i class="fa-solid fa-image"></i>  <!-- 아이콘 버튼으로 전송 -->
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
-  
-
-  <!-- 채팅 메시지 입력 및 전송 -->
-  <div class="chat-input">
-    <input [(ngModel)]="message" type="text" placeholder="Type your message..." />
-    <input type="file" (change)="handleFileInput($event)" />  <!-- 파일 선택 필드 -->
-    <button (click)="sendMessage()">Send</button>  <!-- Send 버튼이 모든 것을 처리 -->
-  </div>
-</div>
+</section>
