@@ -120,5 +120,31 @@
     ],
     "groups": [],
     "dob": "2024-10-17"
+  },
+  {
+    "id": "10",
+    "username": "s1",
+    "password": "$2b$10$/AlNZQeY8VSLBp4MZIdMoOH7pVkQ0t1ZJrLmdHTDLc7Nd3nTO/3gC",
+    "firstName": "s1",
+    "lastName": "s1",
+    "email": "s1@.com",
+    "roles": [
+      "Super Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-19"
+  },
+  {
+    "id": "11",
+    "username": "g1",
+    "password": "$2b$10$mRSbcNjDAtM1tNa9/LAZqunfReFlVMk0e/YXEuuOlO5vKHTbNMdYy",
+    "firstName": "g1",
+    "lastName": "g1",
+    "email": "g1.com",
+    "roles": [
+      "Group Admin"
+    ],
+    "groups": [],
+    "dob": "2024-10-11"
   }
 ]
