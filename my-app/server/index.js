@@ -124,6 +124,8 @@ io.on('connection', (socket) => {
 });
 
 
+
+
 app.use(bodyParser.json());
 app.use(cors());
 app.use(express.json());
@@ -182,7 +184,7 @@ const upload = multer({ storage: storage });
 const mime = require('mime-types');  // MIME 타입을 구분하기 위한 패키지
 
 // 채팅 이미지/비디오 파일 업로드 엔드포인트
-app.post('/api/channels/:channelId/upload', upload.single('file'), async (req, res) => {
+app.post('/api/channels/:channelId/upload', cors(), upload.single('file'), async (req, res) => {
   const { channelId } = req.params;
   const { message, username } = req.body;
   const fileType = req.file ? (req.file.mimetype.startsWith('image') ? 'image' : 'video') : null; // 파일 타입 확인
@@ -211,6 +213,25 @@ app.post('/api/channels/:channelId/upload', upload.single('file'), async (req, r
     res.status(500).json({ error: 'Failed to upload file and message' });
   }
 });
+
+app.get('/api/channels/:channelId/messages', async (req, res) => {
+  console.log("Requested channelId:", req.params.channelId);  // 요청된 채널 ID 확인
+  const { channelId } = req.params;
+
+  try {
+    const channel = await Channel.findById(channelId);
+    if (!channel) {
+      console.log("Channel not found");
+      return res.status(404).json({ error: 'Channel not found' });
+    }
+
+    res.json(channel.messages);
+  } catch (err) {
+    console.error('Error fetching messages:', err);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
 
 
 // 사용자 알림 추가 함수

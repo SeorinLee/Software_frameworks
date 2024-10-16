@@ -38,8 +38,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.channelId = this.route.snapshot.paramMap.get('id') || '';
     this.groupId = this.route.snapshot.queryParamMap.get('groupId') || '';  
     this.loadChannelData();
+    this.loadMessages();  // 메시지 기록 불러오기 추가
   
     if (isPlatformBrowser(this.platformId)) {
+      if (!this.socket || !this.socket.connected)
       this.socket = io('http://localhost:4002', {
         path: '/socket.io'
       });
@@ -95,7 +97,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.http.post<any>(`http://localhost:4002/api/channels/${this.channelId}/upload`, formData)
         .subscribe(response => {
           console.log('File and message uploaded successfully', response);
-          const fileUrl = response.fileUrl ? `http://localhost:4002${response.fileUrl}` : null;
+          const fileUrl = response.fileUrl ? `http://localhost:4002${response.fileUrl}` : null;  // 파일 URL 확인
           const fileType = response.fileType || null;
   
           // 서버로부터 파일 URL과 파일 유형을 받은 후 소켓으로 메시지를 전송
@@ -116,6 +118,15 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
   
+  // 채널 메시지 기록 불러오기 함수
+loadMessages(): void {
+  this.http.get<any[]>(`http://localhost:4002/api/channels/${this.channelId}/messages`)
+    .subscribe(messages => {
+      this.messages = messages;  // 가져온 메시지를 저장
+    }, error => {
+      console.error('Failed to load messages:', error);
+    });
+}
   
 
   handleFileInput(event: Event): void {
