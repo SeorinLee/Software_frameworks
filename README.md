@@ -48,7 +48,7 @@ channels they have access to.
 ## Installation Instructions
 To set up a project on your local system, follow these steps:
 1. Verify that Node.js is installed on the system.
-2. Replicate the project repository: `git clone https://github.com/your-repo/s5310537-
+2. Replicate the project repository: `git clone https://github.com/your-repo/s5273202-
 project.git`
 3. Go to the project directory: `cd s5310537-project`
 4. Install Angular CLI globally: `npm install -g @angular/cli`
